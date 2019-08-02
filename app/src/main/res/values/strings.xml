@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Task2</string>
+    <string name="search_hint">search picture</string>
+    <string name="btn_name">Search</string>
+</resources>
