@@ -2,6 +2,8 @@ package com.my.bielik.task2.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.text.Spannable;
@@ -57,12 +59,19 @@ public class MainActivity extends AppCompatActivity {
         startLoading(etRequest.getText().toString());
     }
 
-    private void startLoading(String text) {
-        stopLoading();
+    private void startLoading(final String text) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "In thread");
+                stopLoading();
 
-        URLManager.getInstance().setSearchText(text);
-        JsonObjectRequest request = new JsonObjectRequest(URLManager.getInstance().getItemUrl(), null, listener, errorListener);
-        rq.add(request);
+                URLManager.getInstance().setSearchText(text);
+                JsonObjectRequest request = new JsonObjectRequest(URLManager.getInstance().getItemUrl(), null, listener, errorListener);
+                rq.add(request);
+            }
+        }).start();
+
     }
 
     private void stopLoading() {
@@ -96,10 +105,10 @@ public class MainActivity extends AppCompatActivity {
                     result.append(item.getUrl()).append("\n");
                 }
             } catch (JSONException e) {
-                Log.d(TAG, e.getMessage());
+                Log.e(TAG, e.getMessage());
             }
 
-            Spannable spannable = new SpannableString(Html.fromHtml(result.toString()));
+            final Spannable spannable = new SpannableString(Html.fromHtml(result.toString()));
             Linkify.addLinks(spannable, Linkify.WEB_URLS);
 
             URLSpan[] spans = spannable.getSpans(0, spannable.length(), URLSpan.class);
@@ -110,8 +119,15 @@ public class MainActivity extends AppCompatActivity {
                 spannable.setSpan(linkSpan, spanStart, spanEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 spannable.removeSpan(urlSpan);
             }
-            tvResult.setMovementMethod(LinkMovementMethod.getInstance());
-            tvResult.setText(spannable, TextView.BufferType.SPANNABLE);
+            Handler threadHandler = new Handler(Looper.getMainLooper());
+            threadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    tvResult.setMovementMethod(LinkMovementMethod.getInstance());
+                    tvResult.setText(spannable, TextView.BufferType.SPANNABLE);
+                }
+            });
+
         }
 
     };
