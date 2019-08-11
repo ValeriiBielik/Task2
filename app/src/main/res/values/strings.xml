@@ -6,6 +6,8 @@
     <string name="btn_favourites">Favourites</string>
     <string name="tv_favourites_header">Favourites</string>
     <string name="tv_recent_header">Recent</string>
+    <string name="btn_login">Login</string>
+    <string name="et_login_hint">enter username</string>
 
     <string name="toast_in_favourites">Photo is already in favourites</string>
     <string name="toast_not_in_favourites">Photo is not in favourites</string>

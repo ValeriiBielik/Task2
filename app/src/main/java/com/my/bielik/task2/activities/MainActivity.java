@@ -27,6 +27,8 @@ import java.util.ArrayList;
 
 import retrofit2.Call;
 
+import static com.my.bielik.task2.activities.LoginActivity.USER_ID_EXTRA;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String API_KEY = "539bab6327cc06a832b5793853bac293";
@@ -43,9 +45,10 @@ public class MainActivity extends AppCompatActivity {
     private FlickrApi flickrApi;
     private SharedPreferences preferences;
 
+    private int userId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -59,6 +62,10 @@ public class MainActivity extends AppCompatActivity {
         if (preferences.contains(LAST_SEARCH_VALUE)) {
             etRequest.setText(preferences.getString(LAST_SEARCH_VALUE, ""));
         }
+
+        if (getIntent() != null) {
+            userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
+        }
         processResponseThread.start();
 
     }
@@ -68,11 +75,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void openRecentPhotoList(View view) {
-        startActivity(new Intent(this, RecentActivity.class));
+        startActivity(new Intent(this, RecentActivity.class).putExtra(USER_ID_EXTRA, userId));
     }
 
     public void openFavouritePhotoList(View view) {
-        startActivity(new Intent(this, FavouritesActivity.class));
+        startActivity(new Intent(this, FavouritesActivity.class).putExtra(USER_ID_EXTRA, userId));
     }
 
     void getPhotos(String text) {
@@ -114,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                 if (flickrResponse != null) {
                     if (flickrResponse.getStat().equals(FlickrResponse.STAT_OK)) {
                         ArrayList<PhotoItem> photos = flickrResponse.getPhotos().getPhoto();
-                        DatabasePhotoItem databasePhotoItem = new DatabasePhotoItem(context, text);
+                        DatabasePhotoItem databasePhotoItem = new DatabasePhotoItem(context, text, userId);
 
                         for (int i = 0; i < photos.size(); i++) {
                             databasePhotoItem.updateUrlList(photos.get(i).getUrl());

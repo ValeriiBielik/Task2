@@ -12,6 +12,8 @@ import android.widget.Toast;
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.databases.PhotosDBHelper;
 
+import static com.my.bielik.task2.activities.LoginActivity.USER_ID_EXTRA;
+
 public class PhotoActivity extends AppCompatActivity {
 
     public static final String URL_EXTRA = "url";
@@ -22,6 +24,7 @@ public class PhotoActivity extends AppCompatActivity {
 
     private String url;
     private String searchText;
+    private int userId;
 
     private PhotosDBHelper photosDBHelper;
 
@@ -36,6 +39,7 @@ public class PhotoActivity extends AppCompatActivity {
         if (getIntent() != null) {
             url = getIntent().getStringExtra(URL_EXTRA);
             searchText = getIntent().getStringExtra(SEARCH_TEXT_EXTRA);
+            userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
         }
 
         photosDBHelper = new PhotosDBHelper(this);
@@ -55,7 +59,7 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     public void addToFavourites(View view) {
-        boolean success = photosDBHelper.addFavourite(searchText, url);
+        boolean success = photosDBHelper.addFavourite(searchText, url, userId);
 
         if (success) {
             Toast.makeText(this, getString(R.string.toast_added_to_favourites), Toast.LENGTH_SHORT).show();
@@ -65,7 +69,7 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     public void removeFromFavourites(View view) {
-        boolean success = photosDBHelper.removeFavourite(url);
+        boolean success = photosDBHelper.removeFavourite(url, userId);
 
         if (success) {
             Toast.makeText(this, getString(R.string.toast_deleted_from_favourites), Toast.LENGTH_SHORT).show();
@@ -75,6 +79,6 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     public void addToRecent() {
-        photosDBHelper.addRecent(url);
+        photosDBHelper.addRecent(url, userId);
     }
 }

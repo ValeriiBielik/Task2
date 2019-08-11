@@ -13,6 +13,8 @@ import com.my.bielik.task2.databases.PhotosDBHelper;
 
 import java.util.ArrayList;
 
+import static com.my.bielik.task2.activities.LoginActivity.USER_ID_EXTRA;
+
 public class FavouritesActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
@@ -20,6 +22,7 @@ public class FavouritesActivity extends AppCompatActivity {
     private PhotosDBHelper photosDBHelper;
     private FavouritesAdapter adapter;
 
+    private int userId;
     private ArrayList<DatabasePhotoItem> databasePhotoItems = new ArrayList<>();
 
     @Override
@@ -29,12 +32,15 @@ public class FavouritesActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recycler_view_favourites);
 
+        if (getIntent() != null) {
+            userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
+        }
         photosDBHelper = new PhotosDBHelper(this);
         updateFavouriteItemsList();
     }
 
     public void updateFavouriteItemsList() {
-        databasePhotoItems = photosDBHelper.getFavouritePhotos(this, databasePhotoItems);
+        databasePhotoItems = photosDBHelper.getFavouritePhotos(this, databasePhotoItems, userId);
         if (databasePhotoItems.size() == 0) {
             Toast.makeText(this, getString(R.string.toast_no_favourites), Toast.LENGTH_SHORT).show();
         } else {

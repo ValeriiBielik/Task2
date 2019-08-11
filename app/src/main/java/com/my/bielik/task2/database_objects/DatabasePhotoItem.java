@@ -12,13 +12,15 @@ import com.my.bielik.task2.LinkSpan;
 
 public class DatabasePhotoItem {
 
+    private Context context;
     private String searchText;
     private StringBuilder urls = new StringBuilder();
-    private Context context;
+    private int userId;
 
-    public DatabasePhotoItem(Context context, String searchText) {
+    public DatabasePhotoItem(Context context, String searchText, int userId) {
         this.context = context;
         this.searchText = searchText;
+        this.userId = userId;
     }
 
     public String getSearchText() {
@@ -36,7 +38,7 @@ public class DatabasePhotoItem {
 
         URLSpan[] spans = result.getSpans(0, result.length(), URLSpan.class);
         for (URLSpan urlSpan : spans) {
-            LinkSpan linkSpan = new LinkSpan(context, urlSpan.getURL(), searchText);
+            LinkSpan linkSpan = new LinkSpan(context, urlSpan.getURL(), searchText, userId);
             int spanStart = result.getSpanStart(urlSpan);
             int spanEnd = result.getSpanEnd(urlSpan);
             result.setSpan(linkSpan, spanStart, spanEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
