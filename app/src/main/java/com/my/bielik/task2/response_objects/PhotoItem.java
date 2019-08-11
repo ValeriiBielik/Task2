@@ -1,8 +1,6 @@
-package com.my.bielik.task2;
+package com.my.bielik.task2.response_objects;
 
-import java.io.Serializable;
-
-public class PhotoItem implements Serializable {
+public class PhotoItem {
     private String id;
     private String secret;
     private String server;

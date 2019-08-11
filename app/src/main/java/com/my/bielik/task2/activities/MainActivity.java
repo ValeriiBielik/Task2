@@ -1,45 +1,47 @@
 package com.my.bielik.task2.activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Html;
 import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
-import android.text.style.URLSpan;
-import android.text.util.Linkify;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-import com.my.bielik.task2.PhotoItem;
+import com.my.bielik.task2.database_objects.DatabasePhotoItem;
+import com.my.bielik.task2.threds.ProcessResponseThread;
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.URLManager;
+import com.my.bielik.task2.response_objects.FlickrResponse;
+import com.my.bielik.task2.response_objects.PhotoItem;
+import com.my.bielik.task2.retro.FlickrApi;
+import com.my.bielik.task2.retro.Retro;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import retrofit2.Call;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String API_KEY = "539bab6327cc06a832b5793853bac293";
     private static final String TAG = "MainActivity";
+
+    public static final String APP_PREFERENCES = "app_prefs";
+    public static final String LAST_SEARCH_VALUE = "last_search_value";
+
+    private ProcessResponseThread processResponseThread = new ProcessResponseThread();
 
     private TextView tvResult;
     private EditText etRequest;
 
-    private RequestQueue rq;
-    private StringBuilder result;
-
+    private FlickrApi flickrApi;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,105 +52,86 @@ public class MainActivity extends AppCompatActivity {
         tvResult = findViewById(R.id.tv_result);
         etRequest = findViewById(R.id.et_request);
 
-        rq = Volley.newRequestQueue(this);
-        result = new StringBuilder();
+        flickrApi = Retro.buildFlickrApi();
+
+        preferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE);
+
+        if (preferences.contains(LAST_SEARCH_VALUE)) {
+            etRequest.setText(preferences.getString(LAST_SEARCH_VALUE, ""));
+        }
+        processResponseThread.start();
 
     }
 
     public void search(View view) {
-        startLoading(etRequest.getText().toString());
+        getPhotos(etRequest.getText().toString());
     }
 
-    private void startLoading(final String text) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "In thread");
-                stopLoading();
-
-                URLManager.getInstance().setSearchText(text);
-                JsonObjectRequest request = new JsonObjectRequest(URLManager.getInstance().getItemUrl(), null, listener, errorListener);
-                rq.add(request);
-            }
-        }).start();
-
+    public void openRecentPhotoList(View view) {
+        startActivity(new Intent(this, RecentActivity.class));
     }
 
-    private void stopLoading() {
-        if (rq != null) {
-            rq.cancelAll(TAG);
-        }
+    public void openFavouritePhotoList(View view) {
+        startActivity(new Intent(this, FavouritesActivity.class));
+    }
+
+    void getPhotos(String text) {
+        processResponseThread.getHandler().post(new PhotoSearchRunnable(this, text));
     }
 
     @Override
-    public void onStop() {
+    protected void onStop() {
         super.onStop();
-        stopLoading();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(LAST_SEARCH_VALUE, etRequest.getText().toString());
+        editor.apply();
     }
 
-    private Response.Listener<JSONObject> listener = new Response.Listener<JSONObject>() {
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        processResponseThread.quit();
+    }
+
+    private class PhotoSearchRunnable implements Runnable {
+
+        private String text;
+        private Context context;
+
+        PhotoSearchRunnable(Context context, String text) {
+            this.context = context;
+            this.text = text;
+        }
+
         @Override
-        public void onResponse(JSONObject response) {
+        public void run() {
+            Call<FlickrResponse> call = flickrApi.getPhotos(API_KEY, text, "photos");
+
+            Handler handler = new Handler(Looper.getMainLooper());
+
             try {
-                result.setLength(0);
-                JSONObject photos = response.getJSONObject("photos");
+                FlickrResponse flickrResponse = call.execute().body();
+                if (flickrResponse != null) {
+                    if (flickrResponse.getStat().equals(FlickrResponse.STAT_OK)) {
+                        ArrayList<PhotoItem> photos = flickrResponse.getPhotos().getPhoto();
+                        DatabasePhotoItem databasePhotoItem = new DatabasePhotoItem(context, text);
 
-                JSONArray photoArr = photos.getJSONArray("photo");
-                for (int i = 0; i < photoArr.length(); i++) {
-                    JSONObject itemObj = photoArr.getJSONObject(i);
-                    PhotoItem item = new PhotoItem(
-                            itemObj.getString("id"),
-                            itemObj.getString("secret"),
-                            itemObj.getString("server"),
-                            itemObj.getString("farm")
-                    );
-                    result.append(item.getUrl()).append("\n");
+                        for (int i = 0; i < photos.size(); i++) {
+                            databasePhotoItem.updateUrlList(photos.get(i).getUrl());
+                        }
+
+                        final Spannable result = databasePhotoItem.getSpannableUrl();
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                tvResult.setMovementMethod(LinkMovementMethod.getInstance());
+                                tvResult.setText(result, TextView.BufferType.SPANNABLE);
+                            }
+                        });
+                    }
                 }
-            } catch (JSONException e) {
+            } catch (IOException e) {
                 Log.e(TAG, e.getMessage());
-            }
-
-            final Spannable spannable = new SpannableString(Html.fromHtml(result.toString()));
-            Linkify.addLinks(spannable, Linkify.WEB_URLS);
-
-            URLSpan[] spans = spannable.getSpans(0, spannable.length(), URLSpan.class);
-            for (URLSpan urlSpan : spans) {
-                LinkSpan linkSpan = new LinkSpan(urlSpan.getURL());
-                int spanStart = spannable.getSpanStart(urlSpan);
-                int spanEnd = spannable.getSpanEnd(urlSpan);
-                spannable.setSpan(linkSpan, spanStart, spanEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spannable.removeSpan(urlSpan);
-            }
-            Handler threadHandler = new Handler(Looper.getMainLooper());
-            threadHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    tvResult.setMovementMethod(LinkMovementMethod.getInstance());
-                    tvResult.setText(spannable, TextView.BufferType.SPANNABLE);
-                }
-            });
-
-        }
-
-    };
-
-    private Response.ErrorListener errorListener = new Response.ErrorListener() {
-        @Override
-        public void onErrorResponse(VolleyError error) {
-            Log.e(TAG, error.getMessage());
-        }
-    };
-
-    private class LinkSpan extends URLSpan {
-        private LinkSpan(String url) {
-            super(url);
-        }
-
-        @Override
-        public void onClick(View view) {
-            String url = getURL();
-            if (url != null) {
-                startActivity(new Intent(MainActivity.this, PhotoActivity.class).putExtra("url", url));
             }
         }
     }
