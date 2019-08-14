@@ -1,4 +1,4 @@
-package com.my.bielik.task2.database_objects;
+package com.my.bielik.task2.database.object;
 
 import android.content.Context;
 import android.text.Html;
@@ -10,17 +10,28 @@ import android.text.util.Linkify;
 
 import com.my.bielik.task2.LinkSpan;
 
-public class DatabasePhotoItem {
+public class PhotoItem {
 
-    private Context context;
     private String searchText;
     private StringBuilder urls = new StringBuilder();
     private int userId;
+    private int photoId;
 
-    public DatabasePhotoItem(Context context, String searchText, int userId) {
-        this.context = context;
+    public PhotoItem(String searchText, int userId) {
         this.searchText = searchText;
         this.userId = userId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setPhotoId(int photoId) {
+        this.photoId = photoId;
+    }
+
+    public int getPhotoId() {
+        return photoId;
     }
 
     public String getSearchText() {
@@ -28,10 +39,10 @@ public class DatabasePhotoItem {
     }
 
     public String getUrl() {
-        return urls.toString().trim();
+        return urls.toString();
     }
 
-    public Spannable getSpannableUrl() {
+    public Spannable getSpannableUrl(Context context) {
         final Spannable result = new SpannableString(Html.fromHtml(urls.toString()));
 
         Linkify.addLinks(result, Linkify.WEB_URLS);

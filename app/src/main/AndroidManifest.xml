@@ -12,17 +12,18 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activities.LoginActivity"
-            android:theme="@style/SplashTheme">
+            android:name=".activity.LoginActivity"
+            android:theme="@style/SplashTheme"
+            android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.RecentActivity" />
-        <activity android:name=".activities.FavouritesActivity" />
-        <activity android:name=".activities.PhotoActivity">
+        <activity android:name=".activity.RecentActivity" />
+        <activity android:name=".activity.FavouritesActivity" />
+        <activity android:name=".activity.PhotoActivity">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
 
@@ -30,9 +31,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.MainActivity"
-            android:windowSoftInputMode="stateHidden">
-        </activity>
+            android:name=".activity.MainActivity"
+            android:windowSoftInputMode="stateHidden"/>
     </application>
 
 </manifest>

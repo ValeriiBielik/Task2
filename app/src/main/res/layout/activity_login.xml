@@ -3,16 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="@android:color/darker_gray"
     android:layout_height="match_parent"
-    tools:context=".activities.LoginActivity">
+    tools:context=".activity.LoginActivity">
 
     <EditText
         android:id="@+id/et_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_centerHorizontal="true"
         android:layout_margin="8dp"
-        android:hint="@string/et_login_hint" />
+        android:hint="@string/et_login_hint"
+        android:textColor="@android:color/black" />
 
     <Button
         android:id="@+id/btl_login"
@@ -21,8 +23,19 @@
         android:layout_below="@id/et_login"
         android:layout_centerHorizontal="true"
         android:layout_margin="16dp"
+        android:background="@drawable/btn_login"
         android:onClick="login"
         android:text="@string/btn_login"
         android:textSize="20sp" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_users"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btl_login"
+        android:layout_margin="8dp">
+
+    </android.support.v7.widget.RecyclerView>
+
 
 </RelativeLayout>

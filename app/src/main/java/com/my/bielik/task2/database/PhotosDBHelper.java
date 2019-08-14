@@ -1,4 +1,4 @@
-package com.my.bielik.task2.databases;
+package com.my.bielik.task2.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -8,15 +8,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.my.bielik.task2.database_objects.DatabasePhotoItem;
+import com.my.bielik.task2.favourites.RowType;
+import com.my.bielik.task2.database.object.PhotoItem;
+import com.my.bielik.task2.database.object.User;
+import com.my.bielik.task2.favourites.Header;
+import com.my.bielik.task2.favourites.Photo;
 
-import java.util.ArrayList;
+import java.util.List;
 
-import static com.my.bielik.task2.databases.PhotoContract.PhotoEntry.*;
+import static com.my.bielik.task2.activity.LoginActivity.TAG;
+import static com.my.bielik.task2.database.PhotoContract.PhotoEntry.*;
 
 public class PhotosDBHelper extends SQLiteOpenHelper {
 
-    private static final String TAG = "PhotosDBHelper";
+    private static final String LOCAL_TAG = "PhotosDBHelper";
     private static final String DATABASE_NAME = "Photos.db";
     private static final int DATABASE_VERSION = 1;
 
@@ -37,6 +42,7 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
                 TABLE_RECENT_NAME + " (" +
                 _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_RECENT_URL + " TEXT NOT NULL, " +
+                COLUMN_RECENT_SEARCH_TEXT + " TEXT NOT NULL, " +
                 COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 COLUMN_USER_ID + " INTEGER NOt NULL " + ");";
 
@@ -54,46 +60,42 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
 
-    public DatabasePhotoItem getRecentPhotos(Context context, int userId) {
+    public List<PhotoItem> getRecentPhotos(List<PhotoItem> photoItems, int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_RECENT_NAME, null, COLUMN_USER_ID + " = ?",
                 new String[]{String.valueOf(userId)}, null, null, COLUMN_TIMESTAMP + " DESC");
 
-        DatabasePhotoItem databasePhotoItem = new DatabasePhotoItem(context, null, userId);
         if (cursor.moveToFirst()) {
             do {
-                databasePhotoItem.updateUrlList(cursor.getString(cursor.getColumnIndex(COLUMN_RECENT_URL)));
+                PhotoItem photoItem = new PhotoItem(cursor.getString(cursor.getColumnIndex(COLUMN_RECENT_SEARCH_TEXT)), userId);
+                photoItem.updateUrlList(cursor.getString(cursor.getColumnIndex(COLUMN_RECENT_URL)));
+                photoItems.add(photoItem);
             } while (cursor.moveToNext());
         }
         cursor.close();
 
-        return databasePhotoItem;
+        return photoItems;
     }
 
-    public ArrayList<DatabasePhotoItem> getFavouritePhotos(Context context, ArrayList<DatabasePhotoItem> databasePhotoItems, int userId) {
+    // TODO: 14.08.2019 change
+    public List<RowType> getFavouritePhotos(List<RowType> dataSet, int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.query(TABLE_FAVOURITES_NAME, null, COLUMN_USER_ID + " = ?",
                 new String[]{String.valueOf(userId)}, null, null, COLUMN_FAVOURITE_SEARCH_TEXT);
 
-        databasePhotoItems.clear();
-        DatabasePhotoItem databasePhotoItem = null;
         String searchText = "";
-
+        dataSet.clear();
         if (c.moveToFirst()) {
             do {
                 if (!searchText.equals(c.getString(c.getColumnIndex(COLUMN_FAVOURITE_SEARCH_TEXT)))) {
                     searchText = c.getString(c.getColumnIndex(COLUMN_FAVOURITE_SEARCH_TEXT));
-                    if (databasePhotoItem != null) {
-                        databasePhotoItems.add(databasePhotoItem);
-                    }
-                    databasePhotoItem = new DatabasePhotoItem(context, searchText, userId);
+                    dataSet.add(new Header(searchText));
                 }
-                databasePhotoItem.updateUrlList(c.getString(c.getColumnIndex(COLUMN_FAVOURITE_URL)));
+                dataSet.add(new Photo(c.getString(c.getColumnIndex(COLUMN_FAVOURITE_URL)), searchText));
             } while (c.moveToNext());
             c.close();
-            databasePhotoItems.add(databasePhotoItem);
         }
-        return databasePhotoItems;
+        return dataSet;
     }
 
     public boolean addFavourite(String searchText, String url, int userId) {
@@ -138,28 +140,30 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void addRecent(String url, int userId) {
+    // TODO: 14.08.2019 change
+    public void addRecent(String searchText, String url, int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        String sUserId = String.valueOf(userId);
+        String id = String.valueOf(userId);
 
         Cursor cursor = db.query(TABLE_RECENT_NAME, null, COLUMN_RECENT_URL + " = ? AND " + COLUMN_USER_ID + " = ?",
-                new String[]{url, sUserId}, null, null, null);
+                new String[]{url, id}, null, null, null);
         if (cursor.moveToFirst()) {
             Log.e(TAG, "addToRecent: failure");
             cursor.close();
         } else {
-            if (DatabaseUtils.queryNumEntries(db, TABLE_RECENT_NAME, COLUMN_USER_ID + " = ?", new String[]{sUserId}) >= 20) {
+            if (DatabaseUtils.queryNumEntries(db, TABLE_RECENT_NAME, COLUMN_USER_ID + " = ?", new String[]{id}) >= 20) {
                 cursor = db.query(TABLE_RECENT_NAME, null, COLUMN_USER_ID + " = ?",
-                        new String[]{sUserId}, null, null, COLUMN_TIMESTAMP);
+                        new String[]{id}, null, null, COLUMN_TIMESTAMP);
                 if (cursor.moveToFirst()) {
                     String s = cursor.getString(cursor.getColumnIndex(COLUMN_TIMESTAMP));
 
-                    int n = db.delete(TABLE_RECENT_NAME, COLUMN_TIMESTAMP + " = ? AND " + COLUMN_USER_ID + " = ?", new String[]{s, sUserId});
+                    int n = db.delete(TABLE_RECENT_NAME, COLUMN_TIMESTAMP + " = ? AND " + COLUMN_USER_ID + " = ?", new String[]{s, id});
                     Log.e(TAG, "deletedFromRecent: success | deleted rows: " + n + " | date: " + s);
                 }
                 cursor.close();
             }
             ContentValues cv = new ContentValues();
+            cv.put(COLUMN_RECENT_SEARCH_TEXT, searchText);
             cv.put(COLUMN_RECENT_URL, url);
             cv.put(COLUMN_USER_ID, userId);
             Log.e(TAG, "addToRecent: success | id: " + db.insert(TABLE_RECENT_NAME, null, cv));
@@ -182,5 +186,17 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
             Log.e(TAG, "addUser: Success | id: " + id);
         }
         return id;
+    }
+
+    public List<User> getUsers(List<User> users) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS_NAME, null, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                users.add(new User((int)cursor.getLong(cursor.getColumnIndex(_ID)), cursor.getString(cursor.getColumnIndex(COLUMN_USERNAME))));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return users;
     }
 }

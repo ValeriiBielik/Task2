@@ -1,7 +1,8 @@
-package com.my.bielik.task2.activities;
+package com.my.bielik.task2.activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.webkit.URLUtil;
 import android.webkit.WebView;
@@ -10,14 +11,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.databases.PhotosDBHelper;
+import com.my.bielik.task2.database.PhotosDBHelper;
 
-import static com.my.bielik.task2.activities.LoginActivity.USER_ID_EXTRA;
+import static com.my.bielik.task2.activity.LoginActivity.*;
 
 public class PhotoActivity extends AppCompatActivity {
-
-    public static final String URL_EXTRA = "url";
-    public static final String SEARCH_TEXT_EXTRA = "search_text";
 
     private TextView tvSearchInfo;
     private WebView webView;
@@ -55,30 +53,23 @@ public class PhotoActivity extends AppCompatActivity {
         });
         webView.loadUrl(url);
 
+        Log.e(TAG, "PhotoActivity.onCreate : userId " + userId);
         addToRecent();
     }
 
     public void addToFavourites(View view) {
-        boolean success = photosDBHelper.addFavourite(searchText, url, userId);
-
-        if (success) {
-            Toast.makeText(this, getString(R.string.toast_added_to_favourites), Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, getString(R.string.toast_in_favourites), Toast.LENGTH_SHORT).show();
-        }
+        String response = photosDBHelper.addFavourite(searchText, url, userId)
+                ? getString(R.string.toast_added_to_favourites) : getString(R.string.toast_in_favourites);
+        Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
     }
 
     public void removeFromFavourites(View view) {
-        boolean success = photosDBHelper.removeFavourite(url, userId);
-
-        if (success) {
-            Toast.makeText(this, getString(R.string.toast_deleted_from_favourites), Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, getString(R.string.toast_not_in_favourites), Toast.LENGTH_SHORT).show();
-        }
+        String response =  photosDBHelper.removeFavourite(url, userId)
+                ? getString(R.string.toast_deleted_from_favourites) : getString(R.string.toast_not_in_favourites);
+        Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
     }
 
     public void addToRecent() {
-        photosDBHelper.addRecent(url, userId);
+        photosDBHelper.addRecent(searchText, url, userId);
     }
 }

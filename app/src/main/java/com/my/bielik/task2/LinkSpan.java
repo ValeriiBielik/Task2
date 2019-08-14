@@ -5,12 +5,9 @@ import android.content.Intent;
 import android.text.style.URLSpan;
 import android.view.View;
 
-import com.my.bielik.task2.activities.PhotoActivity;
+import com.my.bielik.task2.activity.PhotoActivity;
 
-import static com.my.bielik.task2.activities.LoginActivity.USER_ID_EXTRA;
-import static com.my.bielik.task2.activities.PhotoActivity.SEARCH_TEXT_EXTRA;
-import static com.my.bielik.task2.activities.PhotoActivity.URL_EXTRA;
-
+import static com.my.bielik.task2.activity.LoginActivity.*;
 
 public class LinkSpan extends URLSpan {
 
