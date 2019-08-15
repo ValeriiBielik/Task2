@@ -15,15 +15,15 @@ import java.util.List;
 
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder> {
 
-    private List<PhotoItem> photoItems;
+    private List<PhotoItem> dataSet;
     private OnItemClickListener listener;
 
     public interface OnItemClickListener {
         void onItemClick(RecyclerView.ViewHolder viewHolder);
     }
 
-    public PhotoAdapter(List<PhotoItem> photoItems) {
-        this.photoItems = photoItems;
+    public PhotoAdapter(List<PhotoItem> dataSet) {
+        this.dataSet = dataSet;
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -39,9 +39,9 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
 
     @Override
     public void onBindViewHolder(@NonNull final PhotoViewHolder photoViewHolder, int i) {
-        photoViewHolder.tvRequestText.setText(photoItems.get(i).getSearchText());
+        photoViewHolder.tvRequestText.setText(dataSet.get(i).getSearchText());
         Glide.with(photoViewHolder.itemView.getContext()).
-                load(photoItems.get(i).getUrl()).
+                load(dataSet.get(i).getUrl()).
                 into(photoViewHolder.ivPhoto);
 
         photoViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -54,7 +54,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
 
     @Override
     public int getItemCount() {
-        return photoItems.size();
+        return dataSet.size();
     }
 
     static class PhotoViewHolder extends RecyclerView.ViewHolder {

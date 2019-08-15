@@ -10,7 +10,6 @@ public class Photo implements RowType {
     private String url;
 
     private OnRemoveButtonClickListener listener;
-    private RecyclerView.ViewHolder viewHolder;
     private String searchText;
 
     public Photo(String url, String searchText) {
@@ -30,9 +29,8 @@ public class Photo implements RowType {
         return searchText;
     }
 
-    void setOnRemoveButtonClickListener(OnRemoveButtonClickListener listener, RecyclerView.ViewHolder viewHolder){
+    void setOnRemoveButtonClickListener(OnRemoveButtonClickListener listener) {
         this.listener = listener;
-        this.viewHolder = viewHolder;
     }
 
     @Override

@@ -8,7 +8,12 @@ public class PhotoList {
     private int pages;
     private int perpage;
     private int total;
+
     private List<ResponsePhotoItem> photo;
+
+    public int getPages() {
+        return pages;
+    }
 
     public List<ResponsePhotoItem> getPhoto() {
         return photo;

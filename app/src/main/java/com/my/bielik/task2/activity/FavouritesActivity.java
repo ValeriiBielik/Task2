@@ -7,9 +7,9 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.widget.Toast;
 
+import com.my.bielik.task2.database.object.PhotoItem;
 import com.my.bielik.task2.favourites.Header;
 import com.my.bielik.task2.favourites.Photo;
 import com.my.bielik.task2.favourites.RowType;
@@ -26,7 +26,7 @@ public class FavouritesActivity extends AppCompatActivity {
 
     private RecyclerView rvFavourites;
 
-    private PhotosDBHelper photosDBHelper;
+    private PhotosDBHelper dbHelper;
     private FavouritesAdapter adapter;
 
     private int userId;
@@ -42,8 +42,14 @@ public class FavouritesActivity extends AppCompatActivity {
         if (getIntent() != null) {
             userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
         }
-        photosDBHelper = new PhotosDBHelper(this);
 
+        dbHelper = new PhotosDBHelper(this);
+
+        setUpRecyclerView();
+        updateFavouriteItemsList();
+    }
+
+    public void setUpRecyclerView() {
         rvFavourites.setLayoutManager(new LinearLayoutManager(this));
         adapter = new FavouritesAdapter(dataSet);
         rvFavourites.setAdapter(adapter);
@@ -62,7 +68,7 @@ public class FavouritesActivity extends AppCompatActivity {
         adapter.setOnRemoveButtonClickListener(new Photo.OnRemoveButtonClickListener() {
             @Override
             public void onClickListener(RecyclerView.ViewHolder viewHolder) {
-               removeItem(viewHolder.getAdapterPosition());
+                removeItem(viewHolder.getAdapterPosition());
             }
         });
 
@@ -77,10 +83,6 @@ public class FavouritesActivity extends AppCompatActivity {
                 removeItem(viewHolder.getAdapterPosition());
             }
         }).attachToRecyclerView(rvFavourites);
-
-        Log.e(TAG, "FavouritesActivity.onCreate : userID " + userId);
-
-        updateFavouriteItemsList();
     }
 
     public void removeItem(int position) {
@@ -88,13 +90,21 @@ public class FavouritesActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
             return;
         }
-        photosDBHelper.removeFavourite(((Photo) dataSet.get(position)).getUrl(), userId);
+        PhotoItem photoItem = new PhotoItem(((Photo) dataSet.get(position)).getSearchText(), ((Photo) dataSet.get(position)).getUrl(), userId);
+        dbHelper.removeFavourite(photoItem);
         dataSet.remove(position);
         adapter.notifyItemRemoved(position);
+
+        if (dbHelper.getFavouritePhotoCount(photoItem) == 0) {
+            if (--position != RecyclerView.NO_POSITION) {
+                dataSet.remove(position);
+                adapter.notifyItemRemoved(position);
+            }
+        }
     }
 
     public void updateFavouriteItemsList() {
-        dataSet = photosDBHelper.getFavouritePhotos(dataSet, userId);
+        dataSet = dbHelper.getFavouritePhotos(dataSet, userId);
         if (dataSet.size() == 0) {
             Toast.makeText(this, getString(R.string.toast_no_favourites), Toast.LENGTH_SHORT).show();
         }

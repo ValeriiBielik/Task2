@@ -39,7 +39,7 @@ public class FavouritesAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder viewHolder, int i) {
         dataSet.get(i).onBindViewHolder(viewHolder);
         if (dataSet.get(i) instanceof Photo) {
-            ((Photo) dataSet.get(i)).setOnRemoveButtonClickListener(onRemoveButtonClickListener, viewHolder);
+            ((Photo) dataSet.get(i)).setOnRemoveButtonClickListener(onRemoveButtonClickListener);
             viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

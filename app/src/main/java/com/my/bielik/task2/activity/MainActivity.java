@@ -13,6 +13,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.my.bielik.task2.PhotoAdapter;
 import com.my.bielik.task2.database.object.PhotoItem;
@@ -46,10 +47,14 @@ public class MainActivity extends AppCompatActivity {
 
     private FlickrApi flickrApi;
     private SharedPreferences preferences;
+    private PhotoSearchRunnable runnable;
 
     private PhotoAdapter adapter;
-    private volatile List<PhotoItem> photoItems = new ArrayList<>();
+    private LinearLayoutManager layoutManager;
+
     private int userId;
+    private boolean isLoading;
+    private volatile List<PhotoItem> photoItems = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
         flickrApi = Retro.buildFlickrApi();
 
         preferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE);
-
         if (preferences.contains(LAST_SEARCH_VALUE)) {
             etRequest.setText(preferences.getString(LAST_SEARCH_VALUE, ""));
         }
@@ -71,7 +75,26 @@ public class MainActivity extends AppCompatActivity {
             userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
         }
 
-        rvPhotos.setLayoutManager(new LinearLayoutManager(this));
+        setRecyclerView();
+        runnable = new PhotoSearchRunnable(this, userId);
+        processResponseThread.start();
+    }
+
+    public void search(View view) {
+        getPhotos(etRequest.getText().toString().trim());
+    }
+
+    public void openRecentPhotoList(View view) {
+        startActivity(new Intent(this, RecentActivity.class).putExtra(USER_ID_EXTRA, userId));
+    }
+
+    public void openFavouritePhotoList(View view) {
+        startActivity(new Intent(this, FavouritesActivity.class).putExtra(USER_ID_EXTRA, userId));
+    }
+
+    public void setRecyclerView() {
+        layoutManager = new LinearLayoutManager(this);
+        rvPhotos.setLayoutManager(layoutManager);
         adapter = new PhotoAdapter(photoItems);
         rvPhotos.setAdapter(adapter);
 
@@ -97,30 +120,41 @@ public class MainActivity extends AppCompatActivity {
                 removeItem(viewHolder.getAdapterPosition());
             }
         }).attachToRecyclerView(rvPhotos);
-        Log.e(TAG, "MainActivity.onCreate : userId " + userId);
 
-        processResponseThread.start();
+        rvPhotos.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int totalItemCount = layoutManager.getItemCount();
+                int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
+
+                if (!isLoading) {
+                    if (firstVisibleItem >= totalItemCount * 0.8) {
+                        isLoading = true;
+                        loadMorePhotos();
+                    }
+                }
+            }
+        });
+    }
+
+    void getPhotos(String text) {
+        runnable.setText(text);
+        runnable.resetPage();
+        processResponseThread.getHandler().post(runnable);
+    }
+
+    public void loadMorePhotos() {
+        if (!runnable.updatePage()) {
+            Toast.makeText(this, getString(R.string.toast_no_more_photos), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        processResponseThread.getHandler().post(runnable);
     }
 
     public void removeItem(int position) {
         photoItems.remove(position);
         adapter.notifyItemRemoved(position);
-    }
-
-    public void search(View view) {
-        getPhotos(etRequest.getText().toString(), true);
-    }
-
-    public void openRecentPhotoList(View view) {
-        startActivity(new Intent(this, RecentActivity.class).putExtra(USER_ID_EXTRA, userId));
-    }
-
-    public void openFavouritePhotoList(View view) {
-        startActivity(new Intent(this, FavouritesActivity.class).putExtra(USER_ID_EXTRA, userId));
-    }
-
-    void getPhotos(String text, boolean isUpdated) {
-        processResponseThread.getHandler().post(new PhotoSearchRunnable(this, text, userId, isUpdated));
     }
 
     @Override
@@ -141,27 +175,45 @@ public class MainActivity extends AppCompatActivity {
 
         private String text;
         private int userId;
-        private boolean searchStatus;
+        private int page = 1;
+        private int pagesCount;
+        private boolean isUpdating;
 
         private WeakReference<MainActivity> activityWeakReference;
 
-        PhotoSearchRunnable(MainActivity activity, String text, int userId, boolean isUpdated) {
+        PhotoSearchRunnable(MainActivity activity, int userId) {
             activityWeakReference = new WeakReference<>(activity);
-            this.text = text;
             this.userId = userId;
-            this.searchStatus = isUpdated;
+        }
+
+        void setText(String text) {
+            this.text = text;
+        }
+
+        boolean updatePage() {
+            if (page == pagesCount)
+                return false;
+
+            isUpdating = true;
+            page++;
+            return true;
+        }
+
+        void resetPage() {
+            isUpdating = false;
+            page = 1;
         }
 
         @Override
         public void run() {
-            Log.e(TAG, "Runnable.run : userID " + userId);
+            Log.e(TAG, "Runnable.run : page " + page);
             final MainActivity activity = activityWeakReference.get();
 
             if (activity == null || activity.isFinishing()) {
                 return;
             }
 
-            Call<FlickrResponse> call = activity.flickrApi.getPhotos(API_KEY, text, "photos");
+            Call<FlickrResponse> call = activity.flickrApi.getPhotos(API_KEY, text, "photos", page);
             Handler handler = new Handler(Looper.getMainLooper());
 
             try {
@@ -170,21 +222,25 @@ public class MainActivity extends AppCompatActivity {
                     if (flickrResponse.getStat().equals(FlickrResponse.STAT_OK)) {
                         List<ResponsePhotoItem> photos = flickrResponse.getPhotos().getPhoto();
 
-                        if (searchStatus) {
+                        if (!isUpdating) {
                             activity.photoItems.clear();
                         }
 
                         for (int i = 0; i < photos.size(); i++) {
-                            PhotoItem photoItem = new PhotoItem(text, userId);
-                            photoItem.updateUrlList(photos.get(i).getUrl());
-                            photoItem.setPhotoId(i);
+                            PhotoItem photoItem = new PhotoItem(text, photos.get(i).getUrl(), userId);
                             activity.photoItems.add(photoItem);
                         }
 
+                        if (page == 1) {
+                            pagesCount = flickrResponse.getPhotos().getPages();
+                        }
+
+                        Log.e(TAG, "last page: " + flickrResponse.getPhotos().getPages());
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
                                 activity.adapter.notifyDataSetChanged();
+                                activity.isLoading = false;
                             }
                         });
                     }

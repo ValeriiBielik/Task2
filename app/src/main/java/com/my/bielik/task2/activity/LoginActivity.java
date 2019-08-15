@@ -5,10 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.UsersAdapter;
@@ -29,8 +27,10 @@ public class LoginActivity extends AppCompatActivity {
     private RecyclerView rvUsers;
 
     private PhotosDBHelper dbHelper;
-    private List<User> usernameList = new ArrayList<>();
     private UsersAdapter adapter;
+
+    private List<User> usernameList = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +43,13 @@ public class LoginActivity extends AppCompatActivity {
 
         dbHelper = new PhotosDBHelper(this);
 
-        usernameList = dbHelper.getUsers(usernameList);
+        setUpRecyclerView();
+
+        updateUserList();
+
+    }
+
+    public void setUpRecyclerView() {
         rvUsers.setLayoutManager(new LinearLayoutManager(this));
         adapter = new UsersAdapter(usernameList);
         rvUsers.setAdapter(adapter);
@@ -51,23 +57,28 @@ public class LoginActivity extends AppCompatActivity {
         adapter.setOnItemClickListener(new UsersAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-                startActivity(new Intent(LoginActivity.this, MainActivity.class).
-                        putExtra(USER_ID_EXTRA, usernameList.get(position).getId()));
+                login(usernameList.get(position).getId());
             }
         });
     }
 
-    public void login(View view) {
-        int userId = dbHelper.getUserId(etLogin.getText().toString());
+    public void signUp(View view) {
+        int userId = dbHelper.addUser(etLogin.getText().toString());
+        login(userId);
+    }
+
+    public void login(int userId) {
         startActivity(new Intent(this, MainActivity.class).putExtra(USER_ID_EXTRA, userId));
-        Log.e(TAG, "LoginActivity.login : userID :" + userId);
+    }
+
+    public void updateUserList() {
+        usernameList = dbHelper.getUsers(usernameList);
+        adapter.notifyDataSetChanged();
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        usernameList.clear();
-        usernameList = dbHelper.getUsers(usernameList);
-        adapter.notifyDataSetChanged();
+        updateUserList();
     }
 }

@@ -14,4 +14,5 @@
     <string name="toast_added_to_favourites">Photo is added to favourites</string>
     <string name="toast_deleted_from_favourites">Photo deleted from favourites</string>
     <string name="toast_no_favourites">No favourite photos</string>
+    <string name="toast_no_more_photos">No more Photos</string>
 </resources>
