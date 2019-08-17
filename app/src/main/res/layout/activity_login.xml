@@ -23,7 +23,7 @@
         android:layout_below="@id/et_login"
         android:layout_centerHorizontal="true"
         android:layout_margin="16dp"
-        android:background="@drawable/btn_login"
+        android:background="@drawable/white_background"
         android:onClick="signUp"
         android:text="@string/btn_login"
         android:textSize="20sp" />

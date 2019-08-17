@@ -16,22 +16,25 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.my.bielik.task2.PhotoAdapter;
+import com.my.bielik.task2.R;
+import com.my.bielik.task2.api.FlickrApi;
+import com.my.bielik.task2.api.Retro;
+import com.my.bielik.task2.api.response.FlickrResponse;
+import com.my.bielik.task2.api.response.object.ResponsePhotoItem;
 import com.my.bielik.task2.database.object.PhotoItem;
 import com.my.bielik.task2.threds.ProcessResponseThread;
-import com.my.bielik.task2.R;
-import com.my.bielik.task2.retro.response.FlickrResponse;
-import com.my.bielik.task2.retro.response.object.ResponsePhotoItem;
-import com.my.bielik.task2.retro.FlickrApi;
-import com.my.bielik.task2.retro.Retro;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
 
-import static com.my.bielik.task2.activity.LoginActivity.*;
+import static com.my.bielik.task2.activity.LoginActivity.SEARCH_TEXT_EXTRA;
+import static com.my.bielik.task2.activity.LoginActivity.TAG;
+import static com.my.bielik.task2.activity.LoginActivity.URL_EXTRA;
+import static com.my.bielik.task2.activity.LoginActivity.USER_ID_EXTRA;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
 
     private int userId;
     private boolean isLoading;
-    private volatile List<PhotoItem> photoItems = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,19 +97,19 @@ public class MainActivity extends AppCompatActivity {
     public void setRecyclerView() {
         layoutManager = new LinearLayoutManager(this);
         rvPhotos.setLayoutManager(layoutManager);
-        adapter = new PhotoAdapter(photoItems);
-        rvPhotos.setAdapter(adapter);
 
-        adapter.setOnItemClickListener(new PhotoAdapter.OnItemClickListener() {
+        PhotoAdapter.OnItemClickListener listener = new PhotoAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(RecyclerView.ViewHolder viewHolder) {
+            public void onItemClick(int position) {
                 Intent intent = new Intent(MainActivity.this, PhotoActivity.class);
-                intent.putExtra(URL_EXTRA, photoItems.get(viewHolder.getAdapterPosition()).getUrl());
-                intent.putExtra(SEARCH_TEXT_EXTRA, photoItems.get(viewHolder.getAdapterPosition()).getSearchText());
+                intent.putExtra(URL_EXTRA, adapter.getDataSet().get(position).getUrl());
+                intent.putExtra(SEARCH_TEXT_EXTRA, adapter.getDataSet().get(position).getSearchText());
                 intent.putExtra(USER_ID_EXTRA, userId);
                 startActivity(intent);
             }
-        });
+        };
+        adapter = new PhotoAdapter(listener);
+        rvPhotos.setAdapter(adapter);
 
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
@@ -153,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void removeItem(int position) {
-        photoItems.remove(position);
+        adapter.removeDataItem(position);
         adapter.notifyItemRemoved(position);
     }
 
@@ -223,12 +225,12 @@ public class MainActivity extends AppCompatActivity {
                         List<ResponsePhotoItem> photos = flickrResponse.getPhotos().getPhoto();
 
                         if (!isUpdating) {
-                            activity.photoItems.clear();
+                            activity.adapter.clearDataSet();
                         }
 
                         for (int i = 0; i < photos.size(); i++) {
                             PhotoItem photoItem = new PhotoItem(text, photos.get(i).getUrl(), userId);
-                            activity.photoItems.add(photoItem);
+                            activity.adapter.updateDataSet(photoItem);
                         }
 
                         if (page == 1) {

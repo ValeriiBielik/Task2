@@ -59,7 +59,7 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
 
-    public List<PhotoItem> getRecentPhotos(List<PhotoItem> photoItems, int userId) {
+    public void getRecentPhotos(List<PhotoItem> photoItems, int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_RECENT_NAME, null, COLUMN_USER_ID + " = ?",
                 new String[]{String.valueOf(userId)}, null, null, COLUMN_TIMESTAMP + " DESC");
@@ -72,8 +72,6 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
-
-        return photoItems;
     }
 
     public void addToRecent(PhotoItem photoItem) {
@@ -102,7 +100,7 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
 
     }
 
-    public List<RowType> getFavouritePhotos(List<RowType> dataSet, int userId) {
+    public void getFavouritePhotos(List<RowType> dataSet, int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.query(TABLE_FAVOURITES_NAME, null, COLUMN_USER_ID + " = ?",
                 new String[]{String.valueOf(userId)}, null, null, COLUMN_FAVOURITE_SEARCH_TEXT);
@@ -119,7 +117,6 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
             } while (c.moveToNext());
             c.close();
         }
-        return dataSet;
     }
 
     public boolean addFavourite(PhotoItem photoItem) {
@@ -189,7 +186,7 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
         return id;
     }
 
-    public List<User> getUsers(List<User> users) {
+    public void getUsers(List<User> users) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_USERS_NAME, null, null, null, null, null, null);
         users.clear();
@@ -199,6 +196,5 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        return users;
     }
 }

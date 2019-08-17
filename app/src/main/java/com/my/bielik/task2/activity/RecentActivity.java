@@ -8,11 +8,7 @@ import android.support.v7.widget.RecyclerView;
 
 import com.my.bielik.task2.PhotoAdapter;
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.database.object.PhotoItem;
 import com.my.bielik.task2.database.PhotosDBHelper;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.my.bielik.task2.activity.LoginActivity.*;
 
@@ -24,7 +20,6 @@ public class RecentActivity extends AppCompatActivity {
     private PhotosDBHelper dbHelper;
 
     private int userId;
-    private List<PhotoItem> dataSet = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,22 +34,26 @@ public class RecentActivity extends AppCompatActivity {
 
         dbHelper = new PhotosDBHelper(this);
 
-        rvRecentPhotos.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new PhotoAdapter(dataSet);
-        rvRecentPhotos.setAdapter(adapter);
+        setUpRecyclerView();
+        updateDataSet();
+    }
 
-        adapter.setOnItemClickListener(new PhotoAdapter.OnItemClickListener() {
+    public void setUpRecyclerView() {
+        rvRecentPhotos.setLayoutManager(new LinearLayoutManager(this));
+
+        PhotoAdapter.OnItemClickListener listener = new PhotoAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(RecyclerView.ViewHolder viewHolder) {
+            public void onItemClick(int position) {
                 Intent intent = new Intent(RecentActivity.this, PhotoActivity.class);
-                intent.putExtra(SEARCH_TEXT_EXTRA, dataSet.get(viewHolder.getAdapterPosition()).getSearchText());
-                intent.putExtra(URL_EXTRA, dataSet.get(viewHolder.getAdapterPosition()).getUrl());
+                intent.putExtra(SEARCH_TEXT_EXTRA, adapter.getDataSet().get(position).getSearchText());
+                intent.putExtra(URL_EXTRA, adapter.getDataSet().get(position).getUrl());
                 intent.putExtra(USER_ID_EXTRA, userId);
                 startActivity(intent);
             }
-        });
+        };
 
-        updateDataSet();
+        adapter = new PhotoAdapter(listener);
+        rvRecentPhotos.setAdapter(adapter);
     }
 
     @Override
@@ -64,7 +63,7 @@ public class RecentActivity extends AppCompatActivity {
     }
 
     public void updateDataSet() {
-        dataSet = dbHelper.getRecentPhotos(dataSet, userId);
+        adapter.updateDataSetWithDB(dbHelper, userId);
         adapter.notifyDataSetChanged();
     }
 }

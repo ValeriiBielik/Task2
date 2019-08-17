@@ -11,10 +11,6 @@ import android.widget.EditText;
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.UsersAdapter;
 import com.my.bielik.task2.database.PhotosDBHelper;
-import com.my.bielik.task2.database.object.User;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -28,9 +24,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private PhotosDBHelper dbHelper;
     private UsersAdapter adapter;
-
-    private List<User> usernameList = new ArrayList<>();
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,15 +44,14 @@ public class LoginActivity extends AppCompatActivity {
 
     public void setUpRecyclerView() {
         rvUsers.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new UsersAdapter(usernameList);
-        rvUsers.setAdapter(adapter);
-
-        adapter.setOnItemClickListener(new UsersAdapter.OnItemClickListener() {
+        UsersAdapter.OnItemClickListener listener = new UsersAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-                login(usernameList.get(position).getId());
+                login(adapter.getDataSet().get(position).getId());
             }
-        });
+        };
+        adapter = new UsersAdapter(listener);
+        rvUsers.setAdapter(adapter);
     }
 
     public void signUp(View view) {
@@ -72,7 +64,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void updateUserList() {
-        usernameList = dbHelper.getUsers(usernameList);
+        adapter.updateDataSet(dbHelper);
         adapter.notifyDataSetChanged();
     }
 

@@ -7,62 +7,69 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.my.bielik.task2.database.PhotosDBHelper;
 import com.my.bielik.task2.database.object.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UsersViewHolder> {
 
-    private List<User> usernameList;
+    private List<User> dataSet = new ArrayList<>();
     private OnItemClickListener listener;
 
     public interface OnItemClickListener {
         void onItemClick(int position);
     }
 
-    public void setOnItemClickListener(OnItemClickListener listener) {
+    public UsersAdapter(OnItemClickListener listener) {
         this.listener = listener;
     }
 
-    public UsersAdapter(List<User> usernameList) {
-        this.usernameList = usernameList;
+    public void updateDataSet(PhotosDBHelper dbHelper) {
+        dbHelper.getUsers(dataSet);
+    }
+
+    public List<User> getDataSet() {
+        return dataSet;
     }
 
     @NonNull
     @Override
     public UsersViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.username_item, viewGroup, false);
-        return new UsersViewHolder(view, listener);
+        final UsersViewHolder viewHolder = new UsersViewHolder(view);
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    int position = viewHolder.getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        listener.onItemClick(position);
+                    }
+                }
+            }
+        });
+        return viewHolder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull UsersViewHolder usersViewHolder, int i) {
-        usersViewHolder.tvUsername.setText(usernameList.get(i).getName());
+        usersViewHolder.tvUsername.setText(dataSet.get(i).getName());
     }
 
     @Override
     public int getItemCount() {
-        return usernameList.size();
+        return dataSet.size();
     }
 
     static class UsersViewHolder extends RecyclerView.ViewHolder {
 
         private TextView tvUsername;
 
-        UsersViewHolder(@NonNull View itemView, final OnItemClickListener listener) {
+        UsersViewHolder(@NonNull View itemView) {
             super(itemView);
             tvUsername = itemView.findViewById(R.id.tv_username);
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (listener != null) {
-                        int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION) {
-                            listener.onItemClick(position);
-                        }
-                    }
-                }
-            });
         }
     }
 

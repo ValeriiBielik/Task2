@@ -1,6 +1,6 @@
-package com.my.bielik.task2.retro;
+package com.my.bielik.task2.api;
 
-import com.my.bielik.task2.retro.response.FlickrResponse;
+import com.my.bielik.task2.api.response.FlickrResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

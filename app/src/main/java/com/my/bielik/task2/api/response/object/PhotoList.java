@@ -1,4 +1,4 @@
-package com.my.bielik.task2.retro.response.object;
+package com.my.bielik.task2.api.response.object;
 
 import java.util.List;
 

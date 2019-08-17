@@ -1,4 +1,4 @@
-package com.my.bielik.task2.retro;
+package com.my.bielik.task2.api;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;

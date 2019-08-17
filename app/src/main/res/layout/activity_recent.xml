@@ -11,6 +11,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
+        android:background="@drawable/white_background"
+        android:padding="6dp"
         android:text="@string/tv_recent_header"
         android:textAllCaps="true"
         android:textColor="@android:color/black"

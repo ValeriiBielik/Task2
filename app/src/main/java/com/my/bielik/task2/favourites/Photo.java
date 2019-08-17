@@ -1,24 +1,17 @@
 package com.my.bielik.task2.favourites;
 
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
 
 import com.bumptech.glide.Glide;
 
 public class Photo implements RowType {
 
     private String url;
-
-    private OnRemoveButtonClickListener listener;
     private String searchText;
 
     public Photo(String url, String searchText) {
         this.url = url;
         this.searchText = searchText;
-    }
-
-    public interface OnRemoveButtonClickListener {
-        void onClickListener(RecyclerView.ViewHolder viewHolder);
     }
 
     public String getUrl() {
@@ -27,10 +20,6 @@ public class Photo implements RowType {
 
     public String getSearchText() {
         return searchText;
-    }
-
-    void setOnRemoveButtonClickListener(OnRemoveButtonClickListener listener) {
-        this.listener = listener;
     }
 
     @Override
@@ -44,11 +33,5 @@ public class Photo implements RowType {
         Glide.with(viewHolder.itemView.getContext())
                 .load(url)
                 .into(photoViewHolder.ivPhoto);
-        photoViewHolder.btnRemove.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                listener.onClickListener(viewHolder);
-            }
-        });
     }
 }

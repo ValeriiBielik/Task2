@@ -1,26 +1,24 @@
 package com.my.bielik.task2.activity;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.widget.Toast;
 
-import com.my.bielik.task2.database.object.PhotoItem;
-import com.my.bielik.task2.favourites.Header;
-import com.my.bielik.task2.favourites.Photo;
-import com.my.bielik.task2.favourites.RowType;
-import com.my.bielik.task2.favourites.FavouritesAdapter;
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.database.PhotosDBHelper;
+import com.my.bielik.task2.database.object.PhotoItem;
+import com.my.bielik.task2.favourites.FavouritesAdapter;
+import com.my.bielik.task2.favourites.Header;
+import com.my.bielik.task2.favourites.Photo;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.my.bielik.task2.activity.LoginActivity.*;
+import static com.my.bielik.task2.activity.LoginActivity.SEARCH_TEXT_EXTRA;
+import static com.my.bielik.task2.activity.LoginActivity.URL_EXTRA;
+import static com.my.bielik.task2.activity.LoginActivity.USER_ID_EXTRA;
 
 public class FavouritesActivity extends AppCompatActivity {
 
@@ -30,7 +28,6 @@ public class FavouritesActivity extends AppCompatActivity {
     private FavouritesAdapter adapter;
 
     private int userId;
-    private List<RowType> dataSet = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,26 +48,27 @@ public class FavouritesActivity extends AppCompatActivity {
 
     public void setUpRecyclerView() {
         rvFavourites.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new FavouritesAdapter(dataSet);
-        rvFavourites.setAdapter(adapter);
 
-        adapter.setOnItemClickListener(new FavouritesAdapter.OnItemClickListener() {
+        FavouritesAdapter.OnItemClickListener onItemClickListener = new FavouritesAdapter.OnItemClickListener() {
             @Override
-            public void onItemClickListener(RecyclerView.ViewHolder viewHolder) {
+            public void onClickListener(int position) {
                 Intent intent = new Intent(FavouritesActivity.this, PhotoActivity.class);
-                intent.putExtra(SEARCH_TEXT_EXTRA, ((Photo) dataSet.get(viewHolder.getAdapterPosition())).getSearchText());
-                intent.putExtra(URL_EXTRA, ((Photo) dataSet.get(viewHolder.getAdapterPosition())).getUrl());
+                intent.putExtra(SEARCH_TEXT_EXTRA, ((Photo) adapter.getDataSet().get(position)).getSearchText());
+                intent.putExtra(URL_EXTRA, ((Photo) adapter.getDataSet().get(position)).getUrl());
                 intent.putExtra(USER_ID_EXTRA, userId);
                 startActivity(intent);
             }
-        });
+        };
 
-        adapter.setOnRemoveButtonClickListener(new Photo.OnRemoveButtonClickListener() {
+        FavouritesAdapter.OnRemoveButtonClickListener onRemoveButtonClickListener = new FavouritesAdapter.OnRemoveButtonClickListener() {
             @Override
-            public void onClickListener(RecyclerView.ViewHolder viewHolder) {
-                removeItem(viewHolder.getAdapterPosition());
+            public void onClickListener(int position) {
+                removeItem(position);
             }
-        });
+        };
+
+        adapter = new FavouritesAdapter(onItemClickListener, onRemoveButtonClickListener);
+        rvFavourites.setAdapter(adapter);
 
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
@@ -86,26 +84,27 @@ public class FavouritesActivity extends AppCompatActivity {
     }
 
     public void removeItem(int position) {
-        if (dataSet.get(position) instanceof Header) {
+        if (adapter.getDataSet().get(position) instanceof Header) {
             adapter.notifyDataSetChanged();
             return;
         }
-        PhotoItem photoItem = new PhotoItem(((Photo) dataSet.get(position)).getSearchText(), ((Photo) dataSet.get(position)).getUrl(), userId);
+        PhotoItem photoItem = new PhotoItem(((Photo) adapter.getDataSet().get(position)).getSearchText(),
+                ((Photo) adapter.getDataSet().get(position)).getUrl(), userId);
         dbHelper.removeFavourite(photoItem);
-        dataSet.remove(position);
+        adapter.removeDateItem(position);
         adapter.notifyItemRemoved(position);
 
         if (dbHelper.getFavouritePhotoCount(photoItem) == 0) {
             if (--position != RecyclerView.NO_POSITION) {
-                dataSet.remove(position);
+                adapter.removeDateItem(position);
                 adapter.notifyItemRemoved(position);
             }
         }
     }
 
     public void updateFavouriteItemsList() {
-        dataSet = dbHelper.getFavouritePhotos(dataSet, userId);
-        if (dataSet.size() == 0) {
+        adapter.updateDataSet(dbHelper, userId);
+        if (adapter.getDataSet().size() == 0) {
             Toast.makeText(this, getString(R.string.toast_no_favourites), Toast.LENGTH_SHORT).show();
         }
         adapter.notifyDataSetChanged();

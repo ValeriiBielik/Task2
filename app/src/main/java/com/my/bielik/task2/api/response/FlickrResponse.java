@@ -1,6 +1,6 @@
-package com.my.bielik.task2.retro.response;
+package com.my.bielik.task2.api.response;
 
-import com.my.bielik.task2.retro.response.object.PhotoList;
+import com.my.bielik.task2.api.response.object.PhotoList;
 
 public class FlickrResponse {
 
