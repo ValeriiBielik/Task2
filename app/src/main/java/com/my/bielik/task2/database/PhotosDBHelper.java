@@ -45,14 +45,15 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
                 COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 COLUMN_USER_ID + " INTEGER NOt NULL " + ");";
 
-        String SQL_CREATE_USERS_TABLE = "CREATE TABLE " +
-                TABLE_USERS_NAME + " (" +
-                _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_USERNAME + " TEXT NOT NULL UNIQUE" + ");";
-
         db.execSQL(SQL_CREATE_FAVOURITE_PHOTO_LIST_TABLE);
         db.execSQL(SQL_CREATE_RECENT_PHOTO_LIST_TABLE);
-        db.execSQL(SQL_CREATE_USERS_TABLE);
+
+        db.execSQL(CREATE_USERS_TABLE);
+        db.execSQL(CREATE_PHOTOS_TABLE);
+        db.execSQL(CREATE_SEARCH_TEXT_TABLE);
+
+        db.execSQL(CREATE_FAVOURITES_TABLE);
+        db.execSQL(CREATE_RECENT_TABLE);
     }
 
     @Override
@@ -74,7 +75,7 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
         cursor.close();
     }
 
-    public void addToRecent(PhotoItem photoItem) {
+    public void addRecent(PhotoItem photoItem) {
         SQLiteDatabase db = this.getWritableDatabase();
         String id = String.valueOf(photoItem.getUserId());
 
@@ -96,7 +97,7 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
         cv.put(COLUMN_RECENT_SEARCH_TEXT, photoItem.getSearchText());
         cv.put(COLUMN_RECENT_URL, photoItem.getUrl());
         cv.put(COLUMN_USER_ID, photoItem.getUserId());
-        Log.e(TAG, "addToRecent: success | id: " + db.insert(TABLE_RECENT_NAME, null, cv));
+        Log.e(TAG, "addRecent: success | id: " + db.insert(TABLE_RECENT_NAME, null, cv));
 
     }
 
@@ -119,8 +120,55 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
         }
     }
 
+    // TODO: 18.08.2019 delete old code
     public boolean addFavourite(PhotoItem photoItem) {
         SQLiteDatabase db = this.getWritableDatabase();
+        //---------------------------------------------
+        long search_text_id;
+        long photo_id;
+
+        Cursor c = db.query(TABLE_PHOTOS, null, COLUMN_URL + " = ?",
+                new String[]{photoItem.getUrl()}, null, null, null);
+
+        if (c.moveToFirst()) {
+            photo_id = c.getLong(c.getColumnIndex(_ID));
+            Log.e(TAG, TABLE_PHOTOS + ".add(): failure");
+        } else {
+            ContentValues cv = new ContentValues();
+            cv.put(COLUMN_URL, photoItem.getUrl());
+            photo_id = db.insert(TABLE_PHOTOS, null, cv);
+            Log.e(TAG, TABLE_PHOTOS + ".add(): success");
+        }
+
+        c = db.query(TABLE_REQUEST, null, COLUMN_SEARCH_TEXT + " = ?",
+                new String[]{photoItem.getSearchText()}, null, null, null);
+
+        if (c.moveToFirst()) {
+            search_text_id = c.getLong(c.getColumnIndex(_ID));
+            Log.e(TAG, TABLE_REQUEST + ".add(): failure");
+        } else {
+            ContentValues cv = new ContentValues();
+            cv.put(COLUMN_SEARCH_TEXT, photoItem.getSearchText());
+            search_text_id = db.insert(TABLE_REQUEST, null, cv);
+            Log.e(TAG, TABLE_REQUEST + ".add(): success");
+        }
+
+        c = db.query(TABLE_FAVOURITES, null, COLUMN_PHOTO_ID + " = ? AND " + COLUMN_USER_ID + " = ?",
+                new String[]{String.valueOf(photo_id), String.valueOf(search_text_id)}, null, null, null);
+
+        if (c.moveToFirst()) {
+            c.close();
+            Log.e(TAG, TABLE_FAVOURITES + ".add(): failure");
+        } else {
+            ContentValues cv = new ContentValues();
+            cv.put(COLUMN_PHOTO_ID, photo_id);
+            cv.put(COLUMN_SEARCH_TEXT_ID, search_text_id);
+            cv.put(COLUMN_USER_ID, photoItem.getUserId());
+            db.insert(TABLE_FAVOURITES, null, cv);
+            Log.e(TAG, TABLE_FAVOURITES + ".add(): success");
+        }
+        //---------------------------------------------
+
         Cursor cursor = db.query(TABLE_FAVOURITES_NAME, null, COLUMN_FAVOURITE_URL + " = ? AND " + COLUMN_USER_ID + " = ?",
                 new String[]{photoItem.getUrl(), String.valueOf(photoItem.getUserId())}, null, null, null);
 
@@ -159,7 +207,7 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
             cursor.close();
             return false;
         }
-    }
+    }   
 
     public int getFavouritePhotoCount(PhotoItem photoItem) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -171,7 +219,7 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
     public int addUser(String username) {
         SQLiteDatabase db = this.getWritableDatabase();
         int id;
-        Cursor cursor = db.query(TABLE_USERS_NAME, null, COLUMN_USERNAME + " = ?", new String[]{username}, null, null, null);
+        Cursor cursor = db.query(TABLE_USERS, null, COLUMN_USERNAME + " = ?", new String[]{username}, null, null, null);
         if (cursor.moveToFirst()) {
             id = (int) cursor.getLong(cursor.getColumnIndex(_ID));
             cursor.close();
@@ -180,7 +228,7 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
             ContentValues cv = new ContentValues();
             cv.put(COLUMN_USERNAME, username);
             cursor.close();
-            id = (int) db.insert(TABLE_USERS_NAME, null, cv);
+            id = (int) db.insert(TABLE_USERS, null, cv);
             Log.e(TAG, "addUser: Success | id: " + id);
         }
         return id;
@@ -188,7 +236,7 @@ public class PhotosDBHelper extends SQLiteOpenHelper {
 
     public void getUsers(List<User> users) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_USERS_NAME, null, null, null, null, null, null);
+        Cursor cursor = db.query(TABLE_USERS, null, null, null, null, null, null);
         users.clear();
         if (cursor.moveToFirst()) {
             do {

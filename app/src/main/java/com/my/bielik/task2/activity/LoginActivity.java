@@ -1,10 +1,10 @@
 package com.my.bielik.task2.activity;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.widget.EditText;
 
@@ -17,6 +17,9 @@ public class LoginActivity extends AppCompatActivity {
     public static final String USER_ID_EXTRA = "userId";
     public static final String URL_EXTRA = "url";
     public static final String SEARCH_TEXT_EXTRA = "search_text";
+    public static final String LATITUDE_EXTRA = "latitude";
+    public static final String LONGITUDE_EXTRA = "longitude";
+
     public static final String TAG = "PhotoApp";
 
     private EditText etLogin;

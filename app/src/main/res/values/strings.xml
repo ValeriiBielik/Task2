@@ -8,6 +8,10 @@
     <string name="tv_recent_header">Recent</string>
     <string name="btn_login">Login</string>
     <string name="et_login_hint">enter username</string>
+    <string name="no_photos">No photos</string>
+
+    <string name="lat_long_snippet">Lat: %1$.5f, Long: %2$.5f</string>
+    <string name="dropped_pin">Coordinates</string>
 
     <string name="toast_in_favourites">Photo is already in favourites</string>
     <string name="toast_not_in_favourites">Photo is not in favourites</string>
@@ -15,4 +19,7 @@
     <string name="toast_deleted_from_favourites">Photo deleted from favourites</string>
     <string name="toast_no_favourites">No favourite photos</string>
     <string name="toast_no_more_photos">No more Photos</string>
+    <string name="btn_map">Map</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="btn_search">Search</string>
 </resources>

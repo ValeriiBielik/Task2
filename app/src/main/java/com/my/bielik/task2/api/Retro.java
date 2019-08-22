@@ -15,7 +15,7 @@ public class Retro {
     private Retro() {
     }
 
-    public static FlickrApi buildFlickrApi() {
+    public static FlickrApi getFlickrApi() {
         return getRetrofit().create(FlickrApi.class);
     }
 

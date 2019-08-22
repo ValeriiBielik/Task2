@@ -1,6 +1,6 @@
 package com.my.bielik.task2.favourites;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 
 public interface RowType {
     int HEADER_ROW_TYPE = 0;

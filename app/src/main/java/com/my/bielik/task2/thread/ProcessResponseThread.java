@@ -1,4 +1,4 @@
-package com.my.bielik.task2.threds;
+package com.my.bielik.task2.thread;
 
 import android.os.Handler;
 import android.os.HandlerThread;

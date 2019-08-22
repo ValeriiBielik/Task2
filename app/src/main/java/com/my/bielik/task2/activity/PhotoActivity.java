@@ -1,6 +1,6 @@
 package com.my.bielik.task2.activity;
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.URLUtil;
@@ -67,6 +67,6 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     public void addToRecent() {
-        photosDBHelper.addToRecent(photoItem);
+        photosDBHelper.addRecent(photoItem);
     }
 }
