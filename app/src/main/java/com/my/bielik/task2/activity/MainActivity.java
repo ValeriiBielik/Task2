@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         return adapter;
     }
 
-    public void setRecyclerView() {
+    private void setRecyclerView() {
         layoutManager = new LinearLayoutManager(this);
         rvPhotos.setLayoutManager(layoutManager);
 
@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         isLoading = false;
     }
 
-    public void loadMorePhotos() {
+    private void loadMorePhotos() {
         if (!runnable.updatePage()) {
             Toast.makeText(this, getString(R.string.toast_no_more_photos), Toast.LENGTH_SHORT).show();
             return;
@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         processResponseThread.getHandler().post(runnable);
     }
 
-    public void removeItem(int position) {
+    private void removeItem(int position) {
         adapter.removeDataItem(position);
         adapter.notifyItemRemoved(position);
     }
@@ -183,85 +183,4 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         processResponseThread.quit();
     }
-
-
-//    private class PhotoSearchRunnable implements Runnable {
-//
-//        private String text;
-//        private int userId;
-//        private int page = 1;
-//        private int pagesCount;
-//        private boolean isUpdating;
-//
-//        private WeakReference<MainActivity> activityWeakReference;
-//
-//        PhotoSearchRunnable(MainActivity activity, int userId) {
-//            activityWeakReference = new WeakReference<>(activity);
-//            this.userId = userId;
-//        }
-//
-//        void setText(String text) {
-//            this.text = text;
-//        }
-//
-//        boolean updatePage() {
-//            if (page == pagesCount)
-//                return false;
-//
-//            isUpdating = true;
-//            page++;
-//            return true;
-//        }
-//
-//        void resetPage() {
-//            isUpdating = false;
-//            page = 1;
-//        }
-//
-//        @Override
-//        public void run() {
-//            Log.e(TAG, "Runnable.run : page " + page);
-//            final MainActivity activity = activityWeakReference.get();
-//
-//            if (activity == null || activity.isFinishing()) {
-//                return;
-//            }
-//
-//            Call<FlickrResponse> call = activity.flickrApi.getPhotosWithText(API_KEY, text, "photos", page);
-//            Handler handler = new Handler(Looper.getMainLooper());
-//
-//            try {
-//                FlickrResponse flickrResponse = call.execute().body();
-//                if (flickrResponse != null) {
-//                    if (flickrResponse.getStat().equals(FlickrResponse.STAT_OK)) {
-//                        List<ResponsePhotoItem> photos = flickrResponse.getPhotos().getPhoto();
-//
-//                        if (!isUpdating) {
-//                            activity.adapter.clearDataSet();
-//                        }
-//
-//                        for (int i = 0; i < photos.size(); i++) {
-//                            PhotoItem photoItem = new PhotoItem(text, photos.get(i).getUrl(), userId);
-//                            activity.adapter.updateDataSet(photoItem);
-//                        }
-//
-//                        if (page == 1) {
-//                            pagesCount = flickrResponse.getPhotos().getPages();
-//                        }
-//
-//                        Log.e(TAG, "last page: " + flickrResponse.getPhotos().getPages());
-//                        handler.post(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                activity.adapter.notifyDataSetChanged();
-//                                activity.isLoading = false;
-//                            }
-//                        });
-//                    }
-//                }
-//            } catch (IOException e) {
-//                Log.e(TAG, e.getMessage());
-//            }
-//        }
-//    }
 }
