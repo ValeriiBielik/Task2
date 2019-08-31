@@ -10,12 +10,13 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import android.widget.Toast;
 
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.database.PhotosDBHelper;
+import com.my.bielik.task2.database.DBPhotoHelper;
 import com.my.bielik.task2.database.object.PhotoItem;
 import com.my.bielik.task2.favourites.FavouritesAdapter;
 import com.my.bielik.task2.favourites.Header;
 import com.my.bielik.task2.favourites.Photo;
 
+import static com.my.bielik.task2.activity.LoginActivity.PHOTO_ID_EXTRA;
 import static com.my.bielik.task2.activity.LoginActivity.SEARCH_TEXT_EXTRA;
 import static com.my.bielik.task2.activity.LoginActivity.URL_EXTRA;
 import static com.my.bielik.task2.activity.LoginActivity.USER_ID_EXTRA;
@@ -24,7 +25,7 @@ public class FavouritesActivity extends AppCompatActivity {
 
     private RecyclerView rvFavourites;
 
-    private PhotosDBHelper dbHelper;
+    private DBPhotoHelper dbHelper;
     private FavouritesAdapter adapter;
 
     private int userId;
@@ -40,7 +41,7 @@ public class FavouritesActivity extends AppCompatActivity {
             userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
         }
 
-        dbHelper = new PhotosDBHelper(this);
+        dbHelper = new DBPhotoHelper(this);
 
         setUpRecyclerView();
         updateFavouriteItemsList();
@@ -56,6 +57,7 @@ public class FavouritesActivity extends AppCompatActivity {
                 intent.putExtra(SEARCH_TEXT_EXTRA, ((Photo) adapter.getDataSet().get(position)).getSearchText());
                 intent.putExtra(URL_EXTRA, ((Photo) adapter.getDataSet().get(position)).getUrl());
                 intent.putExtra(USER_ID_EXTRA, userId);
+                intent.putExtra(PHOTO_ID_EXTRA, ((Photo) adapter.getDataSet().get(position)).getPhotoId());
                 startActivity(intent);
             }
         };
@@ -89,7 +91,7 @@ public class FavouritesActivity extends AppCompatActivity {
             return;
         }
         PhotoItem photoItem = new PhotoItem(((Photo) adapter.getDataSet().get(position)).getSearchText(),
-                ((Photo) adapter.getDataSet().get(position)).getUrl(), userId);
+                ((Photo) adapter.getDataSet().get(position)).getUrl(), userId, null);
         dbHelper.removeFavourite(photoItem);
         adapter.removeDateItem(position);
         adapter.notifyItemRemoved(position);

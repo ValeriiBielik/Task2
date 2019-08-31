@@ -1,12 +1,12 @@
 package com.my.bielik.task2.api.response.object;
 
-public class ResponsePhotoItem {
+public class PhotoItemResponse {
     private String id;
     private String secret;
     private String server;
     private String farm;
 
-    public ResponsePhotoItem(String id, String secret, String server, String farm) {
+    public PhotoItemResponse(String id, String secret, String server, String farm) {
         this.id = id;
         this.secret = secret;
         this.server = server;
@@ -17,4 +17,7 @@ public class ResponsePhotoItem {
         return "http://farm" + farm + ".static.flickr.com/" + server + "/" + id + "_" + secret + ".jpg";
     }
 
+    public String getId() {
+        return id;
+    }
 }

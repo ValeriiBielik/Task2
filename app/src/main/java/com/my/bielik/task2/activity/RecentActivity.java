@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.my.bielik.task2.PhotoAdapter;
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.database.PhotosDBHelper;
+import com.my.bielik.task2.database.DBPhotoHelper;
 
 import static com.my.bielik.task2.activity.LoginActivity.*;
 
@@ -17,7 +17,7 @@ public class RecentActivity extends AppCompatActivity {
     private RecyclerView rvRecentPhotos;
 
     private PhotoAdapter adapter;
-    private PhotosDBHelper dbHelper;
+    private DBPhotoHelper dbHelper;
 
     private int userId;
 
@@ -32,7 +32,7 @@ public class RecentActivity extends AppCompatActivity {
             userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
         }
 
-        dbHelper = new PhotosDBHelper(this);
+        dbHelper = new DBPhotoHelper(this);
 
         setUpRecyclerView();
         updateDataSet();
@@ -48,6 +48,7 @@ public class RecentActivity extends AppCompatActivity {
                 intent.putExtra(SEARCH_TEXT_EXTRA, adapter.getDataSet().get(position).getSearchText());
                 intent.putExtra(URL_EXTRA, adapter.getDataSet().get(position).getUrl());
                 intent.putExtra(USER_ID_EXTRA, userId);
+                intent.putExtra(PHOTO_ID_EXTRA, adapter.getDataSet().get(position).getPhotoId());
                 startActivity(intent);
             }
         };

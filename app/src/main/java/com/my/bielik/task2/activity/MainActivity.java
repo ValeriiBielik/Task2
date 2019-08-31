@@ -84,6 +84,10 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(new Intent(this, MapsActivity.class), PICK_COORDINATES_REQUEST);
     }
 
+    public void openGallery(View view) {
+        startActivity(new Intent(this, GalleryActivity.class));
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == PICK_COORDINATES_REQUEST) {
@@ -118,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(URL_EXTRA, adapter.getDataSet().get(position).getUrl());
                 intent.putExtra(SEARCH_TEXT_EXTRA, adapter.getDataSet().get(position).getSearchText());
                 intent.putExtra(USER_ID_EXTRA, userId);
+                intent.putExtra(PHOTO_ID_EXTRA, adapter.getDataSet().get(position).getPhotoId());
                 startActivity(intent);
             }
         };

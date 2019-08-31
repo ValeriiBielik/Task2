@@ -10,11 +10,12 @@ import android.widget.EditText;
 
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.UsersAdapter;
-import com.my.bielik.task2.database.PhotosDBHelper;
+import com.my.bielik.task2.database.DBPhotoHelper;
 
 public class LoginActivity extends AppCompatActivity {
 
     public static final String USER_ID_EXTRA = "userId";
+    public static final String PHOTO_ID_EXTRA = "photoId";
     public static final String URL_EXTRA = "url";
     public static final String SEARCH_TEXT_EXTRA = "search_text";
     public static final String LATITUDE_EXTRA = "latitude";
@@ -25,7 +26,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText etLogin;
     private RecyclerView rvUsers;
 
-    private PhotosDBHelper dbHelper;
+    private DBPhotoHelper dbHelper;
     private UsersAdapter adapter;
 
     @Override
@@ -37,7 +38,7 @@ public class LoginActivity extends AppCompatActivity {
         etLogin = findViewById(R.id.et_login);
         rvUsers = findViewById(R.id.rv_users);
 
-        dbHelper = new PhotosDBHelper(this);
+        dbHelper = new DBPhotoHelper(this);
 
         setUpRecyclerView();
 

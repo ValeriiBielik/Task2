@@ -9,7 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.my.bielik.task2.database.PhotosDBHelper;
+import com.my.bielik.task2.database.DBPhotoHelper;
 import com.my.bielik.task2.database.object.PhotoItem;
 
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         this.listener = listener;
     }
 
-    public void updateDataSetWithDB(PhotosDBHelper dbHelper, int userId) {
+    public void updateDataSetWithDB(DBPhotoHelper dbHelper, int userId) {
         dbHelper.getRecentPhotos(dataSet, userId);
     }
 

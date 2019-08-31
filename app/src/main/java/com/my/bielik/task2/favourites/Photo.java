@@ -8,10 +8,12 @@ public class Photo implements RowType {
 
     private String url;
     private String searchText;
+    private String photoId;
 
-    public Photo(String url, String searchText) {
+    public Photo(String url, String searchText, String photoId) {
         this.url = url;
         this.searchText = searchText;
+        this.photoId = photoId;
     }
 
     public String getUrl() {
@@ -20,6 +22,10 @@ public class Photo implements RowType {
 
     public String getSearchText() {
         return searchText;
+    }
+
+    public String getPhotoId() {
+        return photoId;
     }
 
     @Override

@@ -5,7 +5,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.my.bielik.task2.database.PhotosDBHelper;
+import com.my.bielik.task2.database.DBPhotoHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public class FavouritesAdapter extends RecyclerView.Adapter {
         this.onRemoveButtonClickListener = removeButtonClickListener;
     }
 
-    public void updateDataSet(PhotosDBHelper dbHelper, int userId) {
+    public void updateDataSet(DBPhotoHelper dbHelper, int userId) {
         dbHelper.getFavouritePhotos(dataSet, userId);
     }
 

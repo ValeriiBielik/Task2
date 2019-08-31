@@ -34,7 +34,11 @@ dependencies {
     implementation 'com.facebook.stetho:stetho:1.5.1'
     implementation 'com.facebook.stetho:stetho-okhttp:1.5.1'
 
+    implementation "pub.devrel:easypermissions:0.4.0"
+
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
+
+    implementation 'com.github.yalantis:ucrop:2.2.3'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'

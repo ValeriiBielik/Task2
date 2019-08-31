@@ -1,8 +1,6 @@
-package com.my.bielik.task2.api.response;
+package com.my.bielik.task2.api.response.object;
 
-import com.my.bielik.task2.api.response.object.PhotoList;
-
-public class FlickrResponse {
+public class PhotoListResponse {
 
     public static final String STAT_OK = "ok";
 

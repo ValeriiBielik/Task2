@@ -9,13 +9,13 @@ public class PhotoList {
     private int perpage;
     private int total;
 
-    private List<ResponsePhotoItem> photo;
+    private List<PhotoItemResponse> photo;
 
     public int getPages() {
         return pages;
     }
 
-    public List<ResponsePhotoItem> getPhoto() {
+    public List<PhotoItemResponse> getPhoto() {
         return photo;
     }
 }
