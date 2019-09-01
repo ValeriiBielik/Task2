@@ -1,4 +1,4 @@
-package com.my.bielik.task2;
+package com.my.bielik.task2.user;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -7,8 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.my.bielik.task2.R;
 import com.my.bielik.task2.database.DBPhotoHelper;
-import com.my.bielik.task2.database.object.User;
 
 import java.util.ArrayList;
 import java.util.List;

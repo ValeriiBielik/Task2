@@ -8,7 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.activity.MainActivity;
+import com.my.bielik.task2.main.MainActivity;
 import com.my.bielik.task2.api.Retro;
 import com.my.bielik.task2.api.response.object.PhotoListResponse;
 import com.my.bielik.task2.api.response.object.PhotoItemResponse;
@@ -21,8 +21,8 @@ import java.util.Locale;
 
 import retrofit2.Call;
 
-import static com.my.bielik.task2.activity.LoginActivity.TAG;
-import static com.my.bielik.task2.activity.MainActivity.API_KEY;
+import static com.my.bielik.task2.user.LoginActivity.TAG;
+import static com.my.bielik.task2.main.MainActivity.API_KEY;
 
 public class PhotoSearchRunnable implements Runnable {
 

@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.my.bielik.task2.database.object.User;
+import com.my.bielik.task2.user.User;
 import com.my.bielik.task2.favourites.Photo;
 import com.my.bielik.task2.favourites.RowType;
 import com.my.bielik.task2.database.object.PhotoItem;
@@ -16,7 +16,7 @@ import com.my.bielik.task2.favourites.Header;
 
 import java.util.List;
 
-import static com.my.bielik.task2.activity.LoginActivity.TAG;
+import static com.my.bielik.task2.user.LoginActivity.TAG;
 import static com.my.bielik.task2.database.PhotoContract.DB_NAME;
 import static com.my.bielik.task2.database.PhotoContract.PhotoEntry.*;
 

@@ -1,4 +1,4 @@
-package com.my.bielik.task2;
+package com.my.bielik.task2.app;
 
 import android.app.Application;
 

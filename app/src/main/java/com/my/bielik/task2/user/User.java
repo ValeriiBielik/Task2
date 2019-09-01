@@ -1,4 +1,4 @@
-package com.my.bielik.task2.database.object;
+package com.my.bielik.task2.user;
 
 public class User {
     private int id;

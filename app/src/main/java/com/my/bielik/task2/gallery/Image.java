@@ -1,4 +1,4 @@
-package com.my.bielik.task2;
+package com.my.bielik.task2.gallery;
 
 import android.graphics.Bitmap;
 

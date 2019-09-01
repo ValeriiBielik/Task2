@@ -1,4 +1,4 @@
-package com.my.bielik.task2.activity;
+package com.my.bielik.task2.main;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,13 +15,17 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.my.bielik.task2.PhotoAdapter;
+import com.my.bielik.task2.map.MapsActivity;
+import com.my.bielik.task2.favourites.FavouritesActivity;
+import com.my.bielik.task2.gallery.GalleryActivity;
+import com.my.bielik.task2.photoview.PhotoActivity;
+import com.my.bielik.task2.recent.RecentActivity;
 import com.my.bielik.task2.thread.PhotoSearchRunnable;
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.thread.ProcessResponseThread;
 
 import static com.my.bielik.task2.thread.PhotoSearchRunnable.*;
-import static com.my.bielik.task2.activity.LoginActivity.*;
+import static com.my.bielik.task2.user.LoginActivity.*;
 
 public class MainActivity extends AppCompatActivity {
 

@@ -1,4 +1,4 @@
-package com.my.bielik.task2.activity;
+package com.my.bielik.task2.map;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -24,10 +24,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.my.bielik.task2.R;
+import com.my.bielik.task2.main.MainActivity;
 
 import java.util.Locale;
 
-import static com.my.bielik.task2.activity.LoginActivity.*;
+import static com.my.bielik.task2.user.LoginActivity.*;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 

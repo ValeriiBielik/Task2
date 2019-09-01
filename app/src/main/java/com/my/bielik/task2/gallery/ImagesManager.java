@@ -1,9 +1,5 @@
-package com.my.bielik.task2;
+package com.my.bielik.task2.gallery;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
@@ -28,7 +24,7 @@ public class ImagesManager {
     public static final int CREATE_PUBLIC_FILE = 1;
     public static final int CREATE_PRIVATE_FILE = 2;
 
-    private static ImagesManager instance;
+    private static ImagesManager instance = new ImagesManager();
     private static final File privateStorage = new File(Environment.getExternalStorageDirectory(), PATH);
     private static File publicStorage = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), PATH);
 
@@ -36,9 +32,6 @@ public class ImagesManager {
     }
 
     public static ImagesManager getInstance() {
-        if (instance == null) {
-            instance = new ImagesManager();
-        }
         return instance;
     }
 

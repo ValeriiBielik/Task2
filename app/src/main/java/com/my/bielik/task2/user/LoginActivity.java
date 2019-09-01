@@ -1,4 +1,4 @@
-package com.my.bielik.task2.activity;
+package com.my.bielik.task2.user;
 
 import android.content.Intent;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.UsersAdapter;
+import com.my.bielik.task2.main.MainActivity;
 import com.my.bielik.task2.database.DBPhotoHelper;
 
 public class LoginActivity extends AppCompatActivity {

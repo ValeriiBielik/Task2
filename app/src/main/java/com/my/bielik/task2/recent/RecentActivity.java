@@ -1,4 +1,4 @@
-package com.my.bielik.task2.activity;
+package com.my.bielik.task2.recent;
 
 import android.content.Intent;
 import androidx.appcompat.app.AppCompatActivity;
@@ -6,11 +6,12 @@ import android.os.Bundle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.my.bielik.task2.PhotoAdapter;
+import com.my.bielik.task2.main.PhotoAdapter;
 import com.my.bielik.task2.R;
+import com.my.bielik.task2.photoview.PhotoActivity;
 import com.my.bielik.task2.database.DBPhotoHelper;
 
-import static com.my.bielik.task2.activity.LoginActivity.*;
+import static com.my.bielik.task2.user.LoginActivity.*;
 
 public class RecentActivity extends AppCompatActivity {
 

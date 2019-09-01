@@ -1,9 +1,11 @@
-package com.my.bielik.task2;
+package com.my.bielik.task2.gallery;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import com.my.bielik.task2.R;
 
 import java.util.ArrayList;
 import java.util.List;

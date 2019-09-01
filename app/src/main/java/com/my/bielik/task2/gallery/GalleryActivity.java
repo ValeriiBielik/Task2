@@ -1,7 +1,9 @@
-package com.my.bielik.task2.activity;
+package com.my.bielik.task2.gallery;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -9,11 +11,10 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
-import com.my.bielik.task2.GalleryAdapter;
-import com.my.bielik.task2.Image;
-import com.my.bielik.task2.ImagesManager;
 import com.my.bielik.task2.R;
+import com.my.bielik.task2.photoview.PhotoActivity;
 import com.yalantis.ucrop.UCrop;
 
 import java.io.ByteArrayOutputStream;
@@ -24,9 +25,13 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
+
+import static com.my.bielik.task2.photoview.PhotoActivity.MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE;
 
 public class GalleryActivity extends AppCompatActivity {
 
@@ -106,7 +111,25 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void updateGallery() {
-        new GalleryAsyncTask(this).execute();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+        } else {
+            new GalleryAsyncTask(this).execute();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                new GalleryAsyncTask(this).execute();
+            } else {
+                Toast.makeText(this, getString(R.string.toast_required_write_external_storage_permission), Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     @Override

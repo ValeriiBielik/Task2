@@ -1,4 +1,4 @@
-package com.my.bielik.task2.activity;
+package com.my.bielik.task2.favourites;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,16 +10,14 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import android.widget.Toast;
 
 import com.my.bielik.task2.R;
+import com.my.bielik.task2.photoview.PhotoActivity;
 import com.my.bielik.task2.database.DBPhotoHelper;
 import com.my.bielik.task2.database.object.PhotoItem;
-import com.my.bielik.task2.favourites.FavouritesAdapter;
-import com.my.bielik.task2.favourites.Header;
-import com.my.bielik.task2.favourites.Photo;
 
-import static com.my.bielik.task2.activity.LoginActivity.PHOTO_ID_EXTRA;
-import static com.my.bielik.task2.activity.LoginActivity.SEARCH_TEXT_EXTRA;
-import static com.my.bielik.task2.activity.LoginActivity.URL_EXTRA;
-import static com.my.bielik.task2.activity.LoginActivity.USER_ID_EXTRA;
+import static com.my.bielik.task2.user.LoginActivity.PHOTO_ID_EXTRA;
+import static com.my.bielik.task2.user.LoginActivity.SEARCH_TEXT_EXTRA;
+import static com.my.bielik.task2.user.LoginActivity.URL_EXTRA;
+import static com.my.bielik.task2.user.LoginActivity.USER_ID_EXTRA;
 
 public class FavouritesActivity extends AppCompatActivity {
 
