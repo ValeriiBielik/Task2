@@ -16,20 +16,20 @@ public class FavouritesAdapter extends RecyclerView.Adapter {
     private OnRemoveButtonClickListener onRemoveButtonClickListener;
     private OnItemClickListener onItemClickListener;
 
-    public FavouritesAdapter(OnItemClickListener itemClickListener, OnRemoveButtonClickListener removeButtonClickListener) {
+    FavouritesAdapter(OnItemClickListener itemClickListener, OnRemoveButtonClickListener removeButtonClickListener) {
         this.onItemClickListener = itemClickListener;
         this.onRemoveButtonClickListener = removeButtonClickListener;
     }
 
-    public void updateDataSet(DBPhotoHelper dbHelper, int userId) {
+    void updateDataSet(DBPhotoHelper dbHelper, int userId) {
         dbHelper.getFavouritePhotos(dataSet, userId);
     }
 
-    public void removeDateItem(int position) {
+    void removeDateItem(int position) {
         dataSet.remove(position);
     }
 
-    public List<RowType> getDataSet() {
+    List<RowType> getDataSet() {
         return dataSet;
     }
 

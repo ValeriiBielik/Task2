@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Retro {
 
-    public static final String BASE_URL = "https://www.flickr.com";
+    private static final String BASE_URL = "https://www.flickr.com";
 
     private static Retrofit retrofit = new Retrofit.Builder()
             .baseUrl(BASE_URL)

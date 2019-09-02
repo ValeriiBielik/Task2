@@ -11,18 +11,24 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.ItemTouchHelper;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.my.bielik.task2.database.object.PhotoItem;
 import com.my.bielik.task2.map.MapsActivity;
 import com.my.bielik.task2.favourites.FavouritesActivity;
 import com.my.bielik.task2.gallery.GalleryActivity;
 import com.my.bielik.task2.photoview.PhotoActivity;
 import com.my.bielik.task2.recent.RecentActivity;
+import com.my.bielik.task2.thread.AddressToTitleConvertRunnable;
 import com.my.bielik.task2.thread.PhotoSearchRunnable;
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.thread.ProcessResponseThread;
+
+import java.util.List;
 
 import static com.my.bielik.task2.thread.PhotoSearchRunnable.*;
 import static com.my.bielik.task2.user.LoginActivity.*;
@@ -47,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayoutManager layoutManager;
 
     private int userId;
+    private String geoPhotoTitle;
     private boolean isLoading;
 
     @Override
@@ -67,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setRecyclerView();
-        runnable = new PhotoSearchRunnable(this, userId);
+        setPhotoSearchRunnable();
+
         processResponseThread.start();
     }
 
@@ -97,8 +105,17 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == PICK_COORDINATES_REQUEST) {
             if (resultCode == RESULT_OK) {
                 if (data != null) {
-                    runnable.setGeoCoordinates(data.getDoubleExtra(LATITUDE_EXTRA, 0),
-                            data.getDoubleExtra(LONGITUDE_EXTRA, 0));
+                    double latitude = data.getDoubleExtra(LATITUDE_EXTRA, 0);
+                    double longitude = data.getDoubleExtra(LONGITUDE_EXTRA, 0);
+                    runnable.setGeoCoordinates(latitude, longitude);
+
+                    processResponseThread.getHandler().post(new AddressToTitleConvertRunnable(this, latitude, longitude,
+                            new AddressToTitleConvertRunnable.OnConvertingFinishedCallback() {
+                        @Override
+                        public void onConvertingFinished(String text) {
+                            geoPhotoTitle = text;
+                        }
+                    }));
                     getPhotos(SEARCH_PHOTOS_WITH_GEO_COORDINATES);
                 }
             }
@@ -158,6 +175,40 @@ public class MainActivity extends AppCompatActivity {
                         loadMorePhotos();
                     }
                 }
+            }
+        });
+    }
+
+    private void setPhotoSearchRunnable() {
+        runnable = new PhotoSearchRunnable(userId, new PhotosFoundCallback() {
+            @Override
+            public void onPhotosFound(final List<PhotoItem> photoItems, final boolean isUpdating, final int searchType) {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!isUpdating) {
+                            adapter.clearDataSet();
+                        }
+
+                        PhotoItem photoItem;
+                        for (int i = 0; i < photoItems.size(); i++) {
+                            photoItem = photoItems.get(i);
+
+                            if (searchType == SEARCH_PHOTOS_WITH_GEO_COORDINATES) {
+                                photoItem.setSearchText(geoPhotoTitle);
+                            }
+                            adapter.updateDataSet(photoItem);
+                        }
+
+                        adapter.notifyDataSetChanged();
+                        finishLoading();
+
+                        if (adapter.getDataSet().size() == 0) {
+                            Toast.makeText(MainActivity.this, getString(R.string.no_photos), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
             }
         });
     }

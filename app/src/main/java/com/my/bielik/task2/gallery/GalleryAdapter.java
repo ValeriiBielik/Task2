@@ -18,15 +18,15 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.GalleryV
     private List<Image> images = new ArrayList<>();
     private OnImageClickListener listener;
 
-    public void setImages(List<Image> images) {
+    void setImages(List<Image> images) {
         this.images = images;
     }
 
-    public List<Image> getImages() {
+    List<Image> getImages() {
         return images;
     }
 
-    public void setOnImageClickListener(OnImageClickListener listener) {
+    void setOnImageClickListener(OnImageClickListener listener) {
         this.listener = listener;
     }
 

@@ -21,6 +21,7 @@ public interface FlickrApi {
                                                         @Query("lon") double lon,
                                                         @Query("media") String media,
                                                         @Query("page") int page);
+
     @GET("/services/rest/?method=flickr.photos.getSizes&format=json&nojsoncallback=1")
     Call<ImageSizesResponse> getPhotoToDownload(@Query("api_key") String apiKey,
                                                 @Query("photo_id") String id);

@@ -22,15 +22,15 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UsersViewHol
         void onItemClick(int position);
     }
 
-    public UsersAdapter(OnItemClickListener listener) {
+    UsersAdapter(OnItemClickListener listener) {
         this.listener = listener;
     }
 
-    public void updateDataSet(DBPhotoHelper dbHelper) {
+    void updateDataSet(DBPhotoHelper dbHelper) {
         dbHelper.getUsers(dataSet);
     }
 
-    public List<User> getDataSet() {
+    List<User> getDataSet() {
         return dataSet;
     }
 
