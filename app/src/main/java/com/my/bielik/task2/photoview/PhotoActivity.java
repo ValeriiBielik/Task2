@@ -7,12 +7,14 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.my.bielik.task2.gallery.ImagesManager;
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.api.Retro;
@@ -43,6 +45,7 @@ public class PhotoActivity extends AppCompatActivity {
 
     private TextView tvSearchInfo;
     private ImageView imageView;
+    private BottomNavigationView bottomNavigationView;
 
     private PhotoItem photoItem;
     private Bitmap bitmap;
@@ -62,6 +65,7 @@ public class PhotoActivity extends AppCompatActivity {
 
         tvSearchInfo = findViewById(R.id.tv_search_info);
         imageView = findViewById(R.id.image_view);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
 
         if (getIntent() != null) {
             if (getIntent().getType() != null && getIntent().getType().equals("path")) {
@@ -75,20 +79,20 @@ public class PhotoActivity extends AppCompatActivity {
                 imageLoadType = PHOTO_ITEM_LOAD;
             }
         }
-
         photosDBHelper = new DBPhotoHelper(this);
 
         setContent();
+        setBottomNavigationView();
         addToRecent();
     }
 
     private void setContent() {
-        switch(imageLoadType) {
-            case BITMAP_LOAD : {
+        switch (imageLoadType) {
+            case BITMAP_LOAD: {
                 imageView.setImageBitmap(bitmap);
                 break;
             }
-            case PHOTO_ITEM_LOAD : {
+            case PHOTO_ITEM_LOAD: {
                 Glide.with(this).load(photoItem.getUrl()).into(imageView);
                 tvSearchInfo.setText(photoItem.getSearchText());
                 break;
@@ -96,7 +100,30 @@ public class PhotoActivity extends AppCompatActivity {
         }
     }
 
-    public void addToFavourites(View view) {
+    private void setBottomNavigationView() {
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.menu_item_add_to_favourites : {
+                        addToFavourites();
+                        return true;
+                    }
+                    case R.id.menu_item_delete_from_favourites : {
+                        removeFromFavourites();
+                        return true;
+                    }
+                    case R.id.menu_item_download : {
+                        downloadImage();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+    }
+
+    public void addToFavourites() {
         if (imageLoadType == PHOTO_ITEM_LOAD) {
             String response = photosDBHelper.addFavourite(photoItem)
                     ? getString(R.string.toast_added_to_favourites) : getString(R.string.toast_in_favourites);
@@ -104,7 +131,7 @@ public class PhotoActivity extends AppCompatActivity {
         }
     }
 
-    public void removeFromFavourites(View view) {
+    public void removeFromFavourites() {
         if (imageLoadType == PHOTO_ITEM_LOAD) {
             String response = photosDBHelper.removeFavourite(photoItem)
                     ? getString(R.string.toast_deleted_from_favourites) : getString(R.string.toast_not_in_favourites);
@@ -118,7 +145,7 @@ public class PhotoActivity extends AppCompatActivity {
         }
     }
 
-    public void downloadImage(View view) {
+    public void downloadImage() {
         if (imageLoadType == PHOTO_ITEM_LOAD) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {

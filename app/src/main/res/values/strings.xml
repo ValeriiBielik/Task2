@@ -1,13 +1,12 @@
 <resources>
     <string name="app_name">Task2</string>
-    <string name="search_hint">search picture</string>
+    <string name="hint_search">search picture</string>
     <string name="btn_name">Search</string>
     <string name="btn_recent">Recent</string>
     <string name="btn_favourites">Favourites</string>
     <string name="tv_favourites_header">Favourites</string>
     <string name="tv_recent_header">Recent</string>
     <string name="btn_login">Login</string>
-    <string name="et_login_hint">enter username</string>
     <string name="no_photos">No photos</string>
 
     <string name="lat_long_snippet">Lat: %1$.5f, Long: %2$.5f</string>
@@ -26,5 +25,24 @@
     <string name="toast_download_completed">Download completed</string>
     <string name="toast_required_write_external_storage_permission">Required write external storage permission</string>
 
+    
+    <string name="my_app_name">Photo Search</string>
+    <string name="hint_username">Username</string>
+    <string name="activity_gallery">Gallery</string>
+    <string name="menu_title_take_photo">takePhoto</string>
+
+    <string name="activity_recent">Recent</string>
+    <string name="activity_favourites">Favourites</string>
+
+    <string name="menu_title_resent_photos">Resent photos</string>
+    <string name="menu_title_map">map</string>
+    <string name="menu_title_gallery">Gallery</string>
+    <string name="menu_title_favourites_photos">Favourites photos</string>
+    <string name="menu_item_title_add_to_favourites">like</string>
+    <string name="menu_item_title_delete_from_favourites">delete</string>
+    <string name="menu_item_download">download</string>
+
+    <string name="theme_light">Light Theme</string>
+    <string name="theme_dark">Dark Theme</string>
 
 </resources>

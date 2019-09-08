@@ -10,7 +10,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.View;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.my.bielik.task2.R;
@@ -25,6 +26,7 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -49,7 +51,23 @@ public class GalleryActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.rv_gallery);
         setUpRecyclerView();
 
+        Toolbar toolbar = findViewById(R.id.gallery_bar);
+        setSupportActionBar(toolbar);
         updateGallery();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.gallery_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.take_photo) {
+            dispatchTakePictureIntent();
+        }
+        return true;
     }
 
     private void setUpRecyclerView() {
@@ -84,10 +102,6 @@ public class GalleryActivity extends AppCompatActivity {
         ImagesManager.getInstance().deleteImage(adapter.getImages().get(position).getSource());
         adapter.getImages().remove(position);
         adapter.notifyDataSetChanged();
-    }
-
-    public void openCamera(View view) {
-        dispatchTakePictureIntent();
     }
 
     private void dispatchTakePictureIntent() {

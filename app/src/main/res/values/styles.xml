@@ -1,16 +1,60 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@android:color/darker_gray</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:colorBackground">@android:color/white</item>
+    <style name="Theme.PhotoSearch.PopupTheme" parent="Theme.MaterialComponents.Light">
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="android:textColor">?android:attr/textColor</item>
     </style>
 
-    <style name="SplashTheme" parent="AppTheme">
-        <item name="android:windowBackground">@drawable/splash</item>
+
+    <style name="Widget.PhotoSearch.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="hintTextAppearance">@style/TextAppearance.PhotoSearch.TextInputLayout.HintText
+        </item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="boxStrokeColor">?colorPrimaryDark</item>
+        <item name="hintTextColor">?android:attr/textColor</item>
     </style>
 
+    <style name="Widget.PhotoSearch.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="backgroundTint">?attr/colorPrimaryDark</item>
+    </style>
+
+    <style name="Widget.PhotoSearch.FloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="backgroundTint">?attr/colorPrimaryDark</item>
+    </style>
+
+    <style name="Widget.PhotoSearch.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="android:background">?attr/colorPrimaryDark</item>
+        <item name="labelVisibilityMode">unlabeled</item>
+        <item name="elevation">0dp</item>
+        <item name="itemIconTint">?attr/itemIconTint</item>
+    </style>
+
+    <style name="TextAppearance.PhotoSearch.Title" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="textAllCaps">true</item>
+        <item name="android:textStyle">bold|italic</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.PhotoSearch.TextInputLayout.HintText" parent="TextAppearance.MaterialComponents.Subtitle2">
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:textColorHint">?android:attr/textColorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.PhotoSearch.Toolbar" parent="TextAppearance.MaterialComponents.Button">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?android:attr/textColor</item>
+    </style>
+
+    <style name="TextAppearance.PhotoSearch.CardText" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:textColor">?android:attr/textColor</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:textStyle">italic</item>
+    </style>
+
+    <style name="Widget.PhotoSearch.CardView" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">?attr/colorSurface</item>
+        <item name="cardElevation">1dp</item>
+        <item name="cardPreventCornerOverlap">true</item>
+    </style>
 </resources>

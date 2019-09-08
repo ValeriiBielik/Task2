@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="com.my.bielik.task2">
 
     <uses-feature
@@ -20,19 +19,14 @@
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".gallery.GalleryActivity" />
+        android:theme="@style/Theme.PhotoSearch.DayNight">
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".map.MapsActivity"
-            android:label="@string/title_activity_maps" />
-        <activity
             android:name=".user.LoginActivity"
-            android:theme="@style/SplashTheme"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,8 +34,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".main.MainActivity"
+            android:windowSoftInputMode="adjustPan"/>
+
         <activity android:name=".recent.RecentActivity" />
+
+        <activity
+            android:name=".map.MapsActivity"
+            android:label="@string/title_activity_maps" />
+
+        <activity android:name=".gallery.GalleryActivity" />
+
         <activity android:name=".favourites.FavouritesActivity" />
+
         <activity android:name=".photoview.PhotoActivity">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
@@ -49,9 +56,6 @@
                 <action android:name="android.intent.action.VIEW" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".main.MainActivity"
-            android:windowSoftInputMode="stateHidden" />
 
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"

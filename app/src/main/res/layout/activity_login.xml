@@ -1,40 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:theme="?theme"
     tools:context=".user.LoginActivity">
 
-    <EditText
-        android:id="@+id/et_login"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_margin="8dp"
-        android:hint="@string/et_login_hint"
-        android:textColor="@android:color/black" />
+        android:layout_height="wrap_content">
 
-    <Button
-        android:id="@+id/btl_login"
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/settings_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:title="login" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="16dp"
+        app:srcCompat="@drawable/photo" />
+
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/et_login"
-        android:layout_centerHorizontal="true"
-        android:layout_margin="16dp"
-        android:background="@drawable/white_background"
+        android:layout_gravity="center"
+        android:layout_marginBottom="48dp"
+        android:text="@string/my_app_name"
+        android:textAppearance="@style/TextAppearance.PhotoSearch.Title" />
+
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.PhotoSearch.TextInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:hint="@string/hint_username">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_login"
+        style="@style/Widget.PhotoSearch.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:onClick="signUp"
-        android:text="@string/btn_login"
-        android:textSize="20sp" />
+        android:text="@string/btn_login" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_users"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/btl_login"
         android:layout_margin="8dp">
 
     </androidx.recyclerview.widget.RecyclerView>
 
 
-</RelativeLayout>
+</LinearLayout>

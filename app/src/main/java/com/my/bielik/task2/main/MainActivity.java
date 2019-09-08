@@ -13,10 +13,12 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.my.bielik.task2.database.object.PhotoItem;
 import com.my.bielik.task2.map.MapsActivity;
 import com.my.bielik.task2.favourites.FavouritesActivity;
@@ -30,6 +32,7 @@ import com.my.bielik.task2.thread.ProcessResponseThread;
 
 import java.util.List;
 
+import static com.my.bielik.task2.app.MyApplication.APP_PREFERENCES;
 import static com.my.bielik.task2.thread.PhotoSearchRunnable.*;
 import static com.my.bielik.task2.user.LoginActivity.*;
 
@@ -38,13 +41,13 @@ public class MainActivity extends AppCompatActivity {
     public static final String API_KEY = "539bab6327cc06a832b5793853bac293";
 
     public static final int PICK_COORDINATES_REQUEST = 1;
-    public static final String APP_PREFERENCES = "app_prefs";
     public static final String LAST_SEARCH_VALUE = "last_search_value";
 
     private ProcessResponseThread processResponseThread = new ProcessResponseThread();
 
     private RecyclerView rvPhotos;
     private EditText etRequest;
+    private BottomNavigationView bottomNavigationView;
 
     private SharedPreferences preferences;
     private PhotoSearchRunnable runnable;
@@ -63,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
 
         rvPhotos = findViewById(R.id.rv_photos);
         etRequest = findViewById(R.id.et_request);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+
 
         preferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE);
         if (preferences.contains(LAST_SEARCH_VALUE)) {
@@ -73,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
             userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
         }
 
+        setBottomNavigationView();
         setRecyclerView();
         setPhotoSearchRunnable();
 
@@ -82,22 +88,6 @@ public class MainActivity extends AppCompatActivity {
     public void search(View view) {
         runnable.setText(etRequest.getText().toString().trim());
         getPhotos(SEARCH_PHOTOS_WITH_TEXT);
-    }
-
-    public void openRecentPhotoList(View view) {
-        startActivity(new Intent(this, RecentActivity.class).putExtra(USER_ID_EXTRA, userId));
-    }
-
-    public void openFavouritePhotoList(View view) {
-        startActivity(new Intent(this, FavouritesActivity.class).putExtra(USER_ID_EXTRA, userId));
-    }
-
-    public void openMap(View view) {
-        startActivityForResult(new Intent(this, MapsActivity.class), PICK_COORDINATES_REQUEST);
-    }
-
-    public void openGallery(View view) {
-        startActivity(new Intent(this, GalleryActivity.class));
     }
 
     @Override
@@ -111,11 +101,11 @@ public class MainActivity extends AppCompatActivity {
 
                     processResponseThread.getHandler().post(new AddressToTitleConvertRunnable(this, latitude, longitude,
                             new AddressToTitleConvertRunnable.OnConvertingFinishedCallback() {
-                        @Override
-                        public void onConvertingFinished(String text) {
-                            geoPhotoTitle = text;
-                        }
-                    }));
+                                @Override
+                                public void onConvertingFinished(String text) {
+                                    geoPhotoTitle = text;
+                                }
+                            }));
                     getPhotos(SEARCH_PHOTOS_WITH_GEO_COORDINATES);
                 }
             }
@@ -126,10 +116,6 @@ public class MainActivity extends AppCompatActivity {
         runnable.setSearchType(searchType);
         runnable.resetPage();
         processResponseThread.getHandler().post(runnable);
-    }
-
-    public PhotoAdapter getAdapter() {
-        return adapter;
     }
 
     private void setRecyclerView() {
@@ -176,6 +162,35 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
+        });
+    }
+
+    private void setBottomNavigationView() {
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.menu_item_recent: {
+                        startActivity(new Intent(MainActivity.this, RecentActivity.class).putExtra(USER_ID_EXTRA, userId));
+                        return true;
+                    }
+                    case R.id.menu_item_map: {
+                        startActivityForResult(new Intent(MainActivity.this, MapsActivity.class), PICK_COORDINATES_REQUEST);
+                        return true;
+                    }
+                    case R.id.menu_item_gallery: {
+                        startActivity(new Intent(MainActivity.this, GalleryActivity.class));
+                        return true;
+                    }
+                    case R.id.menu_item_favourites: {
+                        startActivity(new Intent(MainActivity.this, FavouritesActivity.class).putExtra(USER_ID_EXTRA, userId));
+                        return true;
+                    }
+                    default:
+                        return false;
+                }
+            }
+
         });
     }
 
