@@ -82,10 +82,22 @@ public class ImagesManager {
     }
 
     public List<Image> getImages() {
-        File[] files = ArrayUtils.concat(publicStorage.listFiles(), privateStorage.listFiles());
-        if (files == null) {
-            Log.e(TAG, "Could not list files.");
-            return null;
+        File[] publicFiles = publicStorage.listFiles();
+        File[] privateFiles = privateStorage.listFiles();
+        File[] files;
+
+        if (publicFiles == null) {
+            if (privateFiles == null) {
+                return new ArrayList<>();
+            } else {
+                files = privateFiles;
+            }
+        } else {
+            if (privateFiles == null) {
+                files = publicFiles;
+            } else {
+                files = ArrayUtils.concat(publicStorage.listFiles(), privateStorage.listFiles());
+            }
         }
         ArrayList<Image> list = new ArrayList<>(files.length);
         for (File f : files) {
