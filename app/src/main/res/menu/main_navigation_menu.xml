@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/menu_item_recent"
-        android:icon="@drawable/photos_recent"
-        android:title="@string/menu_title_resent_photos"
-        app:showAsAction="always"/>
-    <item android:id="@+id/menu_item_map"
-        android:icon="@drawable/map"
-        android:title="@string/menu_title_map"
-        app:showAsAction="always"/>
-    <item android:id="@+id/menu_item_gallery"
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_photo_search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/menu_title_search_photos" />
+    <item
+        android:id="@+id/nav_gallery"
         android:icon="@drawable/gallery"
-        android:title="@string/menu_title_gallery"
-        app:showAsAction="always"/>
-    <item android:id="@+id/menu_item_favourites"
+        android:title="@string/menu_title_gallery" />
+    <item
+        android:id="@+id/nav_favourites"
         android:icon="@drawable/photos_favourites"
-        android:title="@string/menu_title_favourites_photos"
-        app:showAsAction="always"/>
+        android:title="@string/menu_title_favourites_photos" />
+    <item
+        android:id="@+id/nav_recent_photos"
+        android:icon="@drawable/photos_recent"
+        android:title="@string/menu_title_resent_photos" />
+    <item
+        android:id="@+id/nav_map"
+        android:icon="@drawable/map"
+        android:title="@string/menu_title_map" />
 </menu>

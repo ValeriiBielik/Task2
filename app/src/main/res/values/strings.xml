@@ -25,7 +25,7 @@
     <string name="toast_download_completed">Download completed</string>
     <string name="toast_required_write_external_storage_permission">Required write external storage permission</string>
 
-    
+
     <string name="my_app_name">Photo Search</string>
     <string name="hint_username">Username</string>
     <string name="activity_gallery">Gallery</string>
@@ -37,12 +37,19 @@
     <string name="menu_title_resent_photos">Resent photos</string>
     <string name="menu_title_map">map</string>
     <string name="menu_title_gallery">Gallery</string>
-    <string name="menu_title_favourites_photos">Favourites photos</string>
+    <string name="menu_title_favourites_photos">Favourites</string>
     <string name="menu_item_title_add_to_favourites">like</string>
     <string name="menu_item_title_delete_from_favourites">delete</string>
     <string name="menu_item_download">download</string>
 
     <string name="theme_light">Light Theme</string>
     <string name="theme_dark">Dark Theme</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="menu_title_search_photos">Search photos</string>
+
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
 
 </resources>

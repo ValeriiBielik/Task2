@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:name=".app.MyApplication"
@@ -39,28 +40,16 @@
             android:name=".main.MainActivity"
             android:windowSoftInputMode="adjustPan"/>
 
-        <activity android:name=".recent.RecentActivity" />
-
-        <activity
-            android:name=".map.MapsActivity"
-            android:label="@string/title_activity_maps" />
-
-        <activity android:name=".gallery.GalleryActivity" />
-
-        <activity android:name=".favourites.FavouritesActivity" />
-
-        <activity android:name=".photoview.PhotoActivity">
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <action android:name="android.intent.action.VIEW" />
-            </intent-filter>
-        </activity>
-
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <receiver android:name="StartActivityOnBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package com.my.bielik.task2.photoview;
 
+
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -7,15 +8,16 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.my.bielik.task2.gallery.ImagesManager;
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.api.Retro;
 import com.my.bielik.task2.api.response.object.ImageResponse;
@@ -23,25 +25,25 @@ import com.my.bielik.task2.api.response.object.ImageSizesResponse;
 import com.my.bielik.task2.api.response.object.PhotoListResponse;
 import com.my.bielik.task2.database.DBPhotoHelper;
 import com.my.bielik.task2.database.object.PhotoItem;
+import com.my.bielik.task2.gallery.ImagesManager;
 
 import java.io.IOException;
 import java.net.URL;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import retrofit2.Call;
 
+import static com.my.bielik.task2.app.MyApplication.API_KEY;
 import static com.my.bielik.task2.user.LoginActivity.PHOTO_ID_EXTRA;
 import static com.my.bielik.task2.user.LoginActivity.SEARCH_TEXT_EXTRA;
+import static com.my.bielik.task2.user.LoginActivity.TAG;
 import static com.my.bielik.task2.user.LoginActivity.URL_EXTRA;
 import static com.my.bielik.task2.user.LoginActivity.USER_ID_EXTRA;
-import static com.my.bielik.task2.main.MainActivity.API_KEY;
 
-public class PhotoActivity extends AppCompatActivity {
-
-    private static final String TAG = "PhotoActivity";
+public class PhotoViewFragment extends Fragment {
 
     private TextView tvSearchInfo;
     private ImageView imageView;
@@ -53,43 +55,61 @@ public class PhotoActivity extends AppCompatActivity {
 
     private DBPhotoHelper photosDBHelper;
 
-    public static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
+    private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
 
-    public static final int PHOTO_ITEM_LOAD = 1;
-    public static final int BITMAP_LOAD = 2;
+    private static final int PHOTO_ITEM_LOAD = 1;
+    private static final int BITMAP_LOAD = 2;
+
+    public PhotoViewFragment() {
+    }
+
+    public static PhotoViewFragment newInstance(String title, String url, int userId, String photoId) {
+        PhotoViewFragment fragment = new PhotoViewFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(SEARCH_TEXT_EXTRA, title);
+        bundle.putString(URL_EXTRA, url);
+        bundle.putInt(USER_ID_EXTRA, userId);
+        bundle.putString(PHOTO_ID_EXTRA, photoId);
+        fragment.setArguments(bundle);
+        return fragment;
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_photo);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_photo_view, container, false);
 
-        tvSearchInfo = findViewById(R.id.tv_search_info);
-        imageView = findViewById(R.id.image_view);
-        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        tvSearchInfo = view.findViewById(R.id.tv_search_info);
+        imageView = view.findViewById(R.id.image_view);
+        bottomNavigationView = view.findViewById(R.id.bottom_navigation);
 
-        if (getIntent() != null) {
-            if (getIntent().getType() != null && getIntent().getType().equals("path")) {
-                bitmap = BitmapFactory.decodeFile(getIntent().getStringExtra("path_extra"));
+        if (getArguments() != null) {
+            if (getArguments().getString("path_extra") != null) {
+                bitmap = BitmapFactory.decodeFile(getArguments().getString("path_extra"));
                 imageLoadType = BITMAP_LOAD;
             } else {
-                photoItem = new PhotoItem(getIntent().getStringExtra(SEARCH_TEXT_EXTRA),
-                        getIntent().getStringExtra(URL_EXTRA),
-                        getIntent().getIntExtra(USER_ID_EXTRA, 0),
-                        getIntent().getStringExtra(PHOTO_ID_EXTRA));
+                photoItem = new PhotoItem(getArguments().getString(SEARCH_TEXT_EXTRA),
+                        getArguments().getString(URL_EXTRA),
+                        getArguments().getInt(USER_ID_EXTRA),
+                        getArguments().getString(PHOTO_ID_EXTRA));
                 imageLoadType = PHOTO_ITEM_LOAD;
             }
         }
-        photosDBHelper = new DBPhotoHelper(this);
+
+        photosDBHelper = new DBPhotoHelper(getActivity());
 
         setContent();
         setBottomNavigationView();
         addToRecent();
+
+        return view;
     }
 
     private void setContent() {
         switch (imageLoadType) {
             case BITMAP_LOAD: {
                 imageView.setImageBitmap(bitmap);
+                bottomNavigationView.setVisibility(View.INVISIBLE);
                 break;
             }
             case PHOTO_ITEM_LOAD: {
@@ -99,6 +119,7 @@ public class PhotoActivity extends AppCompatActivity {
             }
         }
     }
+
 
     private void setBottomNavigationView() {
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -123,38 +144,38 @@ public class PhotoActivity extends AppCompatActivity {
         });
     }
 
-    public void addToFavourites() {
+    private void addToFavourites() {
         if (imageLoadType == PHOTO_ITEM_LOAD) {
             String response = photosDBHelper.addFavourite(photoItem)
                     ? getString(R.string.toast_added_to_favourites) : getString(R.string.toast_in_favourites);
-            Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), response, Toast.LENGTH_SHORT).show();
         }
     }
 
-    public void removeFromFavourites() {
+    private void removeFromFavourites() {
         if (imageLoadType == PHOTO_ITEM_LOAD) {
             String response = photosDBHelper.removeFavourite(photoItem)
                     ? getString(R.string.toast_deleted_from_favourites) : getString(R.string.toast_not_in_favourites);
-            Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), response, Toast.LENGTH_SHORT).show();
         }
     }
 
-    public void addToRecent() {
+    private void addToRecent() {
         if (imageLoadType == PHOTO_ITEM_LOAD) {
             photosDBHelper.addRecent(photoItem);
         }
     }
 
-    public void downloadImage() {
+    private void downloadImage() {
         if (imageLoadType == PHOTO_ITEM_LOAD) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
+                ActivityCompat.requestPermissions(getActivity(),
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
             } else {
                 new DownloadImageAsyncTask(photoItem).execute();
-                Toast.makeText(this, getString(R.string.toast_download_completed), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), getString(R.string.toast_download_completed), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -165,7 +186,7 @@ public class PhotoActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 new DownloadImageAsyncTask(photoItem).execute();
             } else {
-                Toast.makeText(this, getString(R.string.toast_required_write_external_storage_permission), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), getString(R.string.toast_required_write_external_storage_permission), Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -213,4 +234,5 @@ public class PhotoActivity extends AppCompatActivity {
             return null;
         }
     }
+
 }

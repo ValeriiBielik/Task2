@@ -1,261 +1,281 @@
 package com.my.bielik.task2.main;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.IntentFilter;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.provider.MediaStore;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
+
+import com.google.android.material.navigation.NavigationView;
+import com.my.bielik.task2.R;
+import com.my.bielik.task2.favourites.FavouritesFragment;
+import com.my.bielik.task2.gallery.GalleryFragment;
+import com.my.bielik.task2.gallery.ImagesManager;
+import com.my.bielik.task2.map.MapFragment;
+import com.my.bielik.task2.photoview.PhotoViewFragment;
+import com.my.bielik.task2.recent.RecentFragment;
+import com.my.bielik.task2.thread.ProcessResponseThread;
+import com.my.bielik.task2.user.LoginActivity;
+import com.yalantis.ucrop.UCrop;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
-import android.os.Handler;
-import android.os.Looper;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.Toast;
+import static com.my.bielik.task2.user.LoginActivity.LATITUDE_EXTRA;
+import static com.my.bielik.task2.user.LoginActivity.LONGITUDE_EXTRA;
+import static com.my.bielik.task2.user.LoginActivity.PHOTO_ID_EXTRA;
+import static com.my.bielik.task2.user.LoginActivity.SEARCH_TEXT_EXTRA;
+import static com.my.bielik.task2.user.LoginActivity.URL_EXTRA;
+import static com.my.bielik.task2.user.LoginActivity.USER_ID_EXTRA;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.my.bielik.task2.database.object.PhotoItem;
-import com.my.bielik.task2.map.MapsActivity;
-import com.my.bielik.task2.favourites.FavouritesActivity;
-import com.my.bielik.task2.gallery.GalleryActivity;
-import com.my.bielik.task2.photoview.PhotoActivity;
-import com.my.bielik.task2.recent.RecentActivity;
-import com.my.bielik.task2.thread.AddressToTitleConvertRunnable;
-import com.my.bielik.task2.thread.PhotoSearchRunnable;
-import com.my.bielik.task2.R;
-import com.my.bielik.task2.thread.ProcessResponseThread;
+public class MainActivity extends AppCompatActivity implements MapFragment.OnPlaceSelectedCallback, OnPhotoSelectedListener {
 
-import java.util.List;
 
-import static com.my.bielik.task2.app.MyApplication.APP_PREFERENCES;
-import static com.my.bielik.task2.thread.PhotoSearchRunnable.*;
-import static com.my.bielik.task2.user.LoginActivity.*;
-
-public class MainActivity extends AppCompatActivity {
-
-    public static final String API_KEY = "539bab6327cc06a832b5793853bac293";
-
-    public static final int PICK_COORDINATES_REQUEST = 1;
     public static final String LAST_SEARCH_VALUE = "last_search_value";
+    static final int REQUEST_IMAGE_CAPTURE = 1;
 
     private ProcessResponseThread processResponseThread = new ProcessResponseThread();
 
-    private RecyclerView rvPhotos;
-    private EditText etRequest;
-    private BottomNavigationView bottomNavigationView;
-
-    private SharedPreferences preferences;
-    private PhotoSearchRunnable runnable;
-
-    private PhotoAdapter adapter;
-    private LinearLayoutManager layoutManager;
+    private DrawerLayout drawer;
+    private Toolbar toolbar;
+    private NavigationView nvDrawer;
+    private ActionBarDrawerToggle drawerToggle;
 
     private int userId;
-    private String geoPhotoTitle;
-    private boolean isLoading;
+    private int batteryLevel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        rvPhotos = findViewById(R.id.rv_photos);
-        etRequest = findViewById(R.id.et_request);
-        bottomNavigationView = findViewById(R.id.bottom_navigation);
-
-
-        preferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE);
-        if (preferences.contains(LAST_SEARCH_VALUE)) {
-            etRequest.setText(preferences.getString(LAST_SEARCH_VALUE, ""));
-        }
+        toolbar = findViewById(R.id.toolbar);
+        drawer = findViewById(R.id.drawer_layout);
+        nvDrawer = findViewById(R.id.nvView);
 
         if (getIntent() != null) {
             userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
         }
 
-        setBottomNavigationView();
-        setRecyclerView();
-        setPhotoSearchRunnable();
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        setupDrawerContent(nvDrawer);
+
+        drawerToggle = setupDrawerToggle();
+        drawerToggle.setDrawerIndicatorEnabled(true);
+        drawerToggle.syncState();
+
+        drawer.addDrawerListener(drawerToggle);
 
         processResponseThread.start();
+
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction().add(R.id.flContent, PhotoSearchFragment.newInstance()).commit();
+        } else {
+            batteryLevel = savedInstanceState.getInt("battery_level");
+        }
+
+        setBatteryLevelReceiver();
     }
 
-    public void search(View view) {
-        runnable.setText(etRequest.getText().toString().trim());
-        getPhotos(SEARCH_PHOTOS_WITH_TEXT);
+    private ActionBarDrawerToggle setupDrawerToggle() {
+        return new ActionBarDrawerToggle(this, drawer, toolbar, R.string.drawer_open,  R.string.drawer_close);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putInt("battery_level", batteryLevel);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        drawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        drawerToggle.onConfigurationChanged(newConfig);
+    }
+
+
+    @Override
+    public void onPhotoSelected(String title, String url, String photoId) {
+        Fragment fragment = new PhotoViewFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(SEARCH_TEXT_EXTRA, title);
+        bundle.putString(URL_EXTRA, url);
+        bundle.putInt(USER_ID_EXTRA, userId);
+        bundle.putString(PHOTO_ID_EXTRA, photoId);
+        fragment.setArguments(bundle);
+        getSupportFragmentManager().beginTransaction().replace(R.id.flContent, fragment).addToBackStack(null).commit();
+    }
+
+    @Override
+    public void onPhotoFromMemorySelected(String path) {
+        Fragment fragment = new PhotoViewFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString("path_extra", path);
+        fragment.setArguments(bundle);
+        getSupportFragmentManager().beginTransaction().replace(R.id.flContent, fragment).addToBackStack(null).commit();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.gallery_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.take_photo:
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                }
+                return true;
+        }
+
+        if (drawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void setupDrawerContent(NavigationView navigationView) {
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                selectDrawerItem(item);
+                return true;
+            }
+        });
+    }
+
+    private void selectDrawerItem(MenuItem item) {
+        Fragment fragment;
+        switch (item.getItemId()) {
+            case R.id.nav_photo_search:
+                fragment = PhotoSearchFragment.newInstance();
+                toolbar.setTitle(R.string.menu_title_search_photos);
+                break;
+            case R.id.nav_gallery:
+                fragment = GalleryFragment.newInstance();
+                toolbar.setTitle(R.string.menu_title_gallery);
+                break;
+            case R.id.nav_favourites:
+                fragment = FavouritesFragment.newInstance();
+                toolbar.setTitle(R.string.menu_title_favourites_photos);
+                break;
+            case R.id.nav_recent_photos:
+                fragment = RecentFragment.newInstance();
+                toolbar.setTitle(R.string.menu_title_resent_photos);
+                break;
+            case R.id.nav_map:
+                fragment = MapFragment.newInstance();
+                toolbar.setTitle(R.string.menu_title_map);
+                break;
+            default:
+                fragment = PhotoSearchFragment.newInstance();
+                toolbar.setTitle(R.string.menu_title_search_photos);
+        }
+        drawer.closeDrawers();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.flContent, fragment).commit();
+//        item.setChecked(true);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == PICK_COORDINATES_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                if (data != null) {
-                    double latitude = data.getDoubleExtra(LATITUDE_EXTRA, 0);
-                    double longitude = data.getDoubleExtra(LONGITUDE_EXTRA, 0);
-                    runnable.setGeoCoordinates(latitude, longitude);
-
-                    processResponseThread.getHandler().post(new AddressToTitleConvertRunnable(this, latitude, longitude,
-                            new AddressToTitleConvertRunnable.OnConvertingFinishedCallback() {
-                                @Override
-                                public void onConvertingFinished(String text) {
-                                    geoPhotoTitle = text;
-                                }
-                            }));
-                    getPhotos(SEARCH_PHOTOS_WITH_GEO_COORDINATES);
-                }
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            if (data == null) {
+                Log.e("MainActivity", "data is null");
+            } else {
+                Bundle bundle = data.getExtras();
+                Bitmap imageBitmap = (Bitmap) bundle.get("data");
+                startCrop(imageBitmap);
             }
         }
     }
 
-    public void getPhotos(int searchType) {
-        runnable.setSearchType(searchType);
-        runnable.resetPage();
-        processResponseThread.getHandler().post(runnable);
+    private void startCrop(Bitmap bitmap) {
+        UCrop.of(getImageUri(this, bitmap),
+                Uri.fromFile(new File(ImagesManager.getInstance().createPrivateStorage(),
+                        ImagesManager.getInstance().createName("Png"))))
+                .withAspectRatio(1, 1)
+                .withMaxResultSize(450, 450)
+                .start(this);
     }
 
-    private void setRecyclerView() {
-        layoutManager = new LinearLayoutManager(this);
-        rvPhotos.setLayoutManager(layoutManager);
-
-        PhotoAdapter.OnItemClickListener listener = new PhotoAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position) {
-                Intent intent = new Intent(MainActivity.this, PhotoActivity.class);
-                intent.putExtra(URL_EXTRA, adapter.getDataSet().get(position).getUrl());
-                intent.putExtra(SEARCH_TEXT_EXTRA, adapter.getDataSet().get(position).getSearchText());
-                intent.putExtra(USER_ID_EXTRA, userId);
-                intent.putExtra(PHOTO_ID_EXTRA, adapter.getDataSet().get(position).getPhotoId());
-                startActivity(intent);
-            }
-        };
-        adapter = new PhotoAdapter(listener);
-        rvPhotos.setAdapter(adapter);
-
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-                removeItem(viewHolder.getAdapterPosition());
-            }
-        }).attachToRecyclerView(rvPhotos);
-
-        rvPhotos.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                int totalItemCount = layoutManager.getItemCount();
-                int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
-
-                if (!isLoading) {
-                    if (firstVisibleItem >= totalItemCount * 0.8) {
-                        isLoading = true;
-                        loadMorePhotos();
-                    }
-                }
-            }
-        });
+    public Uri getImageUri(Context context, Bitmap image) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(context.getContentResolver(), image, "Title", null);
+        return Uri.parse(path);
     }
 
-    private void setBottomNavigationView() {
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.menu_item_recent: {
-                        startActivity(new Intent(MainActivity.this, RecentActivity.class).putExtra(USER_ID_EXTRA, userId));
-                        return true;
-                    }
-                    case R.id.menu_item_map: {
-                        startActivityForResult(new Intent(MainActivity.this, MapsActivity.class), PICK_COORDINATES_REQUEST);
-                        return true;
-                    }
-                    case R.id.menu_item_gallery: {
-                        startActivity(new Intent(MainActivity.this, GalleryActivity.class));
-                        return true;
-                    }
-                    case R.id.menu_item_favourites: {
-                        startActivity(new Intent(MainActivity.this, FavouritesActivity.class).putExtra(USER_ID_EXTRA, userId));
-                        return true;
-                    }
-                    default:
-                        return false;
-                }
-            }
-
-        });
+    public int getUserId() {
+        return userId;
     }
 
-    private void setPhotoSearchRunnable() {
-        runnable = new PhotoSearchRunnable(userId, new PhotosFoundCallback() {
-            @Override
-            public void onPhotosFound(final List<PhotoItem> photoItems, final boolean isUpdating, final int searchType) {
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!isUpdating) {
-                            adapter.clearDataSet();
-                        }
-
-                        PhotoItem photoItem;
-                        for (int i = 0; i < photoItems.size(); i++) {
-                            photoItem = photoItems.get(i);
-
-                            if (searchType == SEARCH_PHOTOS_WITH_GEO_COORDINATES) {
-                                photoItem.setSearchText(geoPhotoTitle);
-                            }
-                            adapter.updateDataSet(photoItem);
-                        }
-
-                        adapter.notifyDataSetChanged();
-                        finishLoading();
-
-                        if (adapter.getDataSet().size() == 0) {
-                            Toast.makeText(MainActivity.this, getString(R.string.no_photos), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-
-            }
-        });
-    }
-
-    public void finishLoading() {
-        isLoading = false;
-    }
-
-    private void loadMorePhotos() {
-        if (!runnable.updatePage()) {
-            Toast.makeText(this, getString(R.string.toast_no_more_photos), Toast.LENGTH_SHORT).show();
-            return;
-        }
-        processResponseThread.getHandler().post(runnable);
-    }
-
-    private void removeItem(int position) {
-        adapter.removeDataItem(position);
-        adapter.notifyItemRemoved(position);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(LAST_SEARCH_VALUE, etRequest.getText().toString());
-        editor.apply();
+    public ProcessResponseThread getProcessResponseThread() {
+        return processResponseThread;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         processResponseThread.quit();
+    }
+
+    @Override
+    public void onPlaceSelected(double latitude, double longitude) {
+        PhotoSearchFragment fragment = new PhotoSearchFragment();
+        Bundle arguments = new Bundle();
+        arguments.putDouble(LATITUDE_EXTRA, latitude);
+        arguments.putDouble(LONGITUDE_EXTRA, longitude);
+        fragment.setArguments(arguments);
+        getSupportFragmentManager().beginTransaction().replace(R.id.flContent, fragment).commit();
+    }
+
+    private void setBatteryLevelReceiver() {
+        IntentFilter batteryLevelFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+
+        BroadcastReceiver batteryLevelReceiver = new BroadcastReceiver(){
+            @Override
+            public void onReceive(Context context, Intent intent){
+                int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+
+                if (batteryLevel != level) {
+                    batteryLevel = level;
+                    Toast.makeText(context, "Battery level " + batteryLevel, Toast.LENGTH_SHORT).show();
+                    Log.e(LoginActivity.TAG, "Battery level changed: " + batteryLevel);
+                }
+            }
+        };
+        registerReceiver(batteryLevelReceiver, batteryLevelFilter);
     }
 }

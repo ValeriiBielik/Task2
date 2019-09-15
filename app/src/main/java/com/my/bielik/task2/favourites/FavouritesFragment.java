@@ -1,62 +1,73 @@
 package com.my.bielik.task2.favourites;
 
-import android.content.Intent;
+
+import android.content.Context;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.ItemTouchHelper;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.photoview.PhotoActivity;
 import com.my.bielik.task2.database.DBPhotoHelper;
 import com.my.bielik.task2.database.object.PhotoItem;
+import com.my.bielik.task2.main.MainActivity;
+import com.my.bielik.task2.main.OnPhotoSelectedListener;
 
-import static com.my.bielik.task2.user.LoginActivity.PHOTO_ID_EXTRA;
-import static com.my.bielik.task2.user.LoginActivity.SEARCH_TEXT_EXTRA;
-import static com.my.bielik.task2.user.LoginActivity.URL_EXTRA;
-import static com.my.bielik.task2.user.LoginActivity.USER_ID_EXTRA;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-public class FavouritesActivity extends AppCompatActivity {
+public class FavouritesFragment extends Fragment {
 
     private RecyclerView rvFavourites;
 
     private DBPhotoHelper dbHelper;
     private FavouritesAdapter adapter;
 
-    private int userId;
+    private OnPhotoSelectedListener photoSelectedListener;
+
+    public FavouritesFragment() {
+    }
+
+    public static FavouritesFragment newInstance() {
+        return new FavouritesFragment();
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_favourites);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view =inflater.inflate(R.layout.fragment_favourites, container, false);
 
-        rvFavourites = findViewById(R.id.recycler_view_favourites);
-
-        if (getIntent() != null) {
-            userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
-        }
-
-        dbHelper = new DBPhotoHelper(this);
+        rvFavourites = view.findViewById(R.id.recycler_view_favourites);
+        dbHelper = new DBPhotoHelper(getActivity());
 
         setUpRecyclerView();
         updateFavouriteItemsList();
+        return view;
     }
 
-    public void setUpRecyclerView() {
-        rvFavourites.setLayoutManager(new LinearLayoutManager(this));
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof OnPhotoSelectedListener) {
+            photoSelectedListener = (OnPhotoSelectedListener) context;
+        } else {
+            throw new ClassCastException(context.toString());
+        }
+    }
+
+    private void setUpRecyclerView() {
+        rvFavourites.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         FavouritesAdapter.OnItemClickListener onItemClickListener = new FavouritesAdapter.OnItemClickListener() {
             @Override
             public void onClickListener(int position) {
-                Intent intent = new Intent(FavouritesActivity.this, PhotoActivity.class);
-                intent.putExtra(SEARCH_TEXT_EXTRA, ((Photo) adapter.getDataSet().get(position)).getSearchText());
-                intent.putExtra(URL_EXTRA, ((Photo) adapter.getDataSet().get(position)).getUrl());
-                intent.putExtra(USER_ID_EXTRA, userId);
-                intent.putExtra(PHOTO_ID_EXTRA, ((Photo) adapter.getDataSet().get(position)).getPhotoId());
-                startActivity(intent);
+                photoSelectedListener.onPhotoSelected(((Photo) adapter.getDataSet().get(position)).getSearchText(),
+                        ((Photo) adapter.getDataSet().get(position)).getUrl(),
+                        ((Photo) adapter.getDataSet().get(position)).getPhotoId());
             }
         };
 
@@ -83,13 +94,13 @@ public class FavouritesActivity extends AppCompatActivity {
         }).attachToRecyclerView(rvFavourites);
     }
 
-    public void removeItem(int position) {
+    private void removeItem(int position) {
         if (adapter.getDataSet().get(position) instanceof Header) {
             adapter.notifyDataSetChanged();
             return;
         }
         PhotoItem photoItem = new PhotoItem(((Photo) adapter.getDataSet().get(position)).getSearchText(),
-                ((Photo) adapter.getDataSet().get(position)).getUrl(), userId, null);
+                ((Photo) adapter.getDataSet().get(position)).getUrl(), ((MainActivity) getActivity()).getUserId(), null);
         dbHelper.removeFavourite(photoItem);
         adapter.removeDateItem(position);
         adapter.notifyItemRemoved(position);
@@ -102,17 +113,11 @@ public class FavouritesActivity extends AppCompatActivity {
         }
     }
 
-    public void updateFavouriteItemsList() {
-        adapter.updateDataSet(dbHelper, userId);
+    private void updateFavouriteItemsList() {
+        adapter.updateDataSet(dbHelper, ((MainActivity) getActivity()).getUserId());
         if (adapter.getDataSet().size() == 0) {
-            Toast.makeText(this, getString(R.string.toast_no_favourites), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getString(R.string.toast_no_favourites), Toast.LENGTH_SHORT).show();
         }
         adapter.notifyDataSetChanged();
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        updateFavouriteItemsList();
     }
 }

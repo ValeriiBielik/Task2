@@ -13,7 +13,7 @@ import java.util.List;
 
 import retrofit2.Call;
 
-import static com.my.bielik.task2.main.MainActivity.API_KEY;
+import static com.my.bielik.task2.app.MyApplication.API_KEY;
 import static com.my.bielik.task2.user.LoginActivity.TAG;
 
 public class PhotoSearchRunnable implements Runnable {

@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 public class MyApplication extends Application {
 
+    public static final String API_KEY = "539bab6327cc06a832b5793853bac293";
+
     public static final String APP_PREFERENCES = "app_prefs";
     public static final String APP_THEME = "app_theme";
 
