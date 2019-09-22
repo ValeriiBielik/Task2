@@ -2,6 +2,7 @@ package com.my.bielik.task2.favourites;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +12,11 @@ import android.widget.TextView;
 
 import com.my.bielik.task2.R;
 
-class ViewHolderFactory {
+public class ViewHolderFactory {
 
-    static class HeaderViewHolder extends RecyclerView.ViewHolder {
+    public static class HeaderViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvFavouritesHeader;
+        public TextView tvFavouritesHeader;
 
         HeaderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -23,10 +24,10 @@ class ViewHolderFactory {
         }
     }
 
-    static class PhotoViewHolder extends RecyclerView.ViewHolder {
+    public static class PhotoViewHolder extends RecyclerView.ViewHolder {
 
-        ImageView ivPhoto;
-        ImageButton btnRemove;
+        public ImageView ivPhoto;
+        public ImageButton btnRemove;
 
         PhotoViewHolder(@NonNull View itemView) {
             super(itemView);

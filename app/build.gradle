@@ -20,6 +20,9 @@ android {
 }
 
 dependencies {
+    def lifecycle_version = "2.1.0"
+    def room_version = "2.1.0"
+
     api 'com.google.android.material:material:1.1.0-alpha06'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.0.0-beta01'
@@ -40,6 +43,13 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
 
     implementation 'com.github.yalantis:ucrop:2.2.3'
+
+    // ViewModel and LiveData
+    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
+    annotationProcessor "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
+
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'

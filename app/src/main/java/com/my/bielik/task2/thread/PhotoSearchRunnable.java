@@ -5,7 +5,7 @@ import android.util.Log;
 import com.my.bielik.task2.api.Retro;
 import com.my.bielik.task2.api.response.object.PhotoItemResponse;
 import com.my.bielik.task2.api.response.object.PhotoListResponse;
-import com.my.bielik.task2.database.object.PhotoItem;
+import com.my.bielik.task2.database.entity.Photo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,18 +27,16 @@ public class PhotoSearchRunnable implements Runnable {
     private int page = 1;
     private int pagesCount;
     private boolean isUpdating;
-    private int userId;
     private String text;
     private double latitude;
     private double longitude;
     private int searchType;
 
     public interface PhotosFoundCallback {
-        void onPhotosFound(List<PhotoItem> photoItems, boolean isUpdating, int searchType);
+        void onPhotosFound(List<Photo> photos, boolean isUpdating, int searchType);
     }
 
-    public PhotoSearchRunnable(int userId, PhotosFoundCallback callback) {
-        this.userId = userId;
+    public PhotoSearchRunnable(PhotosFoundCallback callback) {
         this.photosFoundCallback = callback;
     }
 
@@ -95,16 +93,16 @@ public class PhotoSearchRunnable implements Runnable {
             }
 
             final List<PhotoItemResponse> photos = photoListResponse.getPhotos().getPhoto();
-            List<PhotoItem> photoItems = new ArrayList<>();
+            List<Photo> photoList = new ArrayList<>();
 
             for (int i = 0; i < photos.size(); i++) {
-                photoItems.add(new PhotoItem(text, photos.get(i).getUrl(), userId, photos.get(i).getId()));
+                photoList.add(new Photo(photos.get(i).getUrl(), text, photos.get(i).getId()));
             }
 
             if (page == 1) {
                 pagesCount = photoListResponse.getPhotos().getPages();
             }
-            photosFoundCallback.onPhotosFound(photoItems, isUpdating, searchType);
+            photosFoundCallback.onPhotosFound(photoList, isUpdating, searchType);
 
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());

@@ -9,6 +9,8 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,10 +18,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.my.bielik.task2.R;
+import com.my.bielik.task2.database.entity.User;
 import com.my.bielik.task2.main.MainActivity;
-import com.my.bielik.task2.database.DBPhotoHelper;
+import com.my.bielik.task2.thread.ProcessResponseThread;
+
+import java.util.List;
 
 import static com.my.bielik.task2.app.MyApplication.APP_PREFERENCES;
 import static com.my.bielik.task2.app.MyApplication.APP_THEME;
@@ -37,9 +43,12 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText etUsername;
     private RecyclerView rvUsers;
+    private ProcessResponseThread processResponseThread = new ProcessResponseThread();
 
-    private DBPhotoHelper dbHelper;
+    //    private DBPhotoHelper dbHelper;
     private UsersAdapter adapter;
+
+    private UserViewModel userViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,13 +58,20 @@ public class LoginActivity extends AppCompatActivity {
         etUsername = findViewById(R.id.et_username);
         rvUsers = findViewById(R.id.rv_users);
 
-        dbHelper = new DBPhotoHelper(this);
-
         Toolbar toolbar = findViewById(R.id.settings_bar);
         setSupportActionBar(toolbar);
 
         setUpRecyclerView();
-        updateUserList();
+
+        userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        userViewModel.getAllUsers().observe(this, new Observer<List<User>>() {
+            @Override
+            public void onChanged(List<User> users) {
+                adapter.setDataSet(users);
+            }
+        });
+
+        processResponseThread.start();
     }
 
     @Override
@@ -103,22 +119,27 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void signUp(View view) {
-        int userId = dbHelper.addUser(etUsername.getText().toString());
-        login(userId);
+        processResponseThread.getHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                int userId = (int) userViewModel.insert(new User(etUsername.getText().toString()));
+                if (userId != -1) {
+                    login(userId);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Such user already exists", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
     }
 
     public void login(int userId) {
         startActivity(new Intent(this, MainActivity.class).putExtra(USER_ID_EXTRA, userId));
     }
 
-    public void updateUserList() {
-        adapter.updateDataSet(dbHelper);
-        adapter.notifyDataSetChanged();
-    }
-
     @Override
-    protected void onRestart() {
-        super.onRestart();
-        updateUserList();
+    protected void onDestroy() {
+        super.onDestroy();
+        processResponseThread.quit();
     }
 }

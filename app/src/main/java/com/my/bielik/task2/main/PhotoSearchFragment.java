@@ -21,11 +21,12 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.database.object.PhotoItem;
+import com.my.bielik.task2.database.entity.Photo;
 import com.my.bielik.task2.photoview.PhotoViewFragment;
 import com.my.bielik.task2.thread.AddressToTitleConvertRunnable;
 import com.my.bielik.task2.thread.PhotoSearchRunnable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -59,7 +60,7 @@ public class PhotoSearchFragment extends Fragment {
     public PhotoSearchFragment() {
     }
 
-    public static PhotoSearchFragment newInstance() {
+    static PhotoSearchFragment newInstance() {
         return new PhotoSearchFragment();
     }
 
@@ -117,14 +118,14 @@ public class PhotoSearchFragment extends Fragment {
                 if (twoPane) {
 
                     getFragmentManager().beginTransaction().replace(R.id.fl_photo_view,
-                            PhotoViewFragment.newInstance(adapter.getDataSet().get(position).getSearchText(),
+                            PhotoViewFragment.newInstance(adapter.getDataSet().get(position).getTitle(),
                             adapter.getDataSet().get(position).getUrl(),
-                            adapter.getDataSet().get(position).getUserId(),
-                            adapter.getDataSet().get(position).getPhotoId())).commit();
+                                    ((MainActivity) getActivity()).getUserId(),
+                            adapter.getDataSet().get(position).getFlickrPhotoId())).commit();
                 } else {
-                    photoSelectedListener.onPhotoSelected(adapter.getDataSet().get(position).getSearchText(),
+                    photoSelectedListener.onPhotoSelected(adapter.getDataSet().get(position).getTitle(),
                             adapter.getDataSet().get(position).getUrl(),
-                            adapter.getDataSet().get(position).getPhotoId());
+                            adapter.getDataSet().get(position).getFlickrPhotoId());
                 }
 
             }
@@ -179,9 +180,9 @@ public class PhotoSearchFragment extends Fragment {
     }
 
     private void setPhotoSearchRunnable() {
-        runnable = new PhotoSearchRunnable(((MainActivity) getActivity()).getUserId(), new PhotoSearchRunnable.PhotosFoundCallback() {
+        runnable = new PhotoSearchRunnable(new PhotoSearchRunnable.PhotosFoundCallback() {
             @Override
-            public void onPhotosFound(final List<PhotoItem> photoItems, final boolean isUpdating, final int searchType) {
+            public void onPhotosFound(final List<Photo> photos, final boolean isUpdating, final int searchType) {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
@@ -189,15 +190,17 @@ public class PhotoSearchFragment extends Fragment {
                             adapter.clearDataSet();
                         }
 
-                        PhotoItem photoItem;
-                        for (int i = 0; i < photoItems.size(); i++) {
-                            photoItem = photoItems.get(i);
+                        List<Photo> photoList = new ArrayList<>();
+                        Photo photo;
+                        for (int i = 0; i < photos.size(); i++) {
+                            photo = photos.get(i);
 
                             if (searchType == SEARCH_PHOTOS_WITH_GEO_COORDINATES) {
-                                photoItem.setSearchText(geoPhotoTitle);
+                                photo.setTitle(geoPhotoTitle);
                             }
-                            adapter.updateDataSet(photoItem);
+                            photoList.add(photo);
                         }
+                        adapter.setDataSet(photoList);
 
                         adapter.notifyDataSetChanged();
                         finishLoading();

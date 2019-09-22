@@ -1,21 +1,24 @@
 package com.my.bielik.task2.favourites;
 
-
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
+import com.my.bielik.task2.FavouritePhotoVIewModel;
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.database.DBPhotoHelper;
-import com.my.bielik.task2.database.object.PhotoItem;
+import com.my.bielik.task2.database.entity.Photo;
 import com.my.bielik.task2.main.MainActivity;
 import com.my.bielik.task2.main.OnPhotoSelectedListener;
 
+import java.util.List;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,8 +27,8 @@ public class FavouritesFragment extends Fragment {
 
     private RecyclerView rvFavourites;
 
-    private DBPhotoHelper dbHelper;
     private FavouritesAdapter adapter;
+    private FavouritePhotoVIewModel favouritePhotoVIewModel;
 
     private OnPhotoSelectedListener photoSelectedListener;
 
@@ -34,19 +37,6 @@ public class FavouritesFragment extends Fragment {
 
     public static FavouritesFragment newInstance() {
         return new FavouritesFragment();
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view =inflater.inflate(R.layout.fragment_favourites, container, false);
-
-        rvFavourites = view.findViewById(R.id.recycler_view_favourites);
-        dbHelper = new DBPhotoHelper(getActivity());
-
-        setUpRecyclerView();
-        updateFavouriteItemsList();
-        return view;
     }
 
     @Override
@@ -59,15 +49,37 @@ public class FavouritesFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        favouritePhotoVIewModel = ViewModelProviders.of(this).get(FavouritePhotoVIewModel.class);
+        favouritePhotoVIewModel.getFavouritePhotos(((MainActivity) getActivity()).getUserId()).observe(this, new Observer<List<RowType>>() {
+            @Override
+            public void onChanged(List<RowType> rowTypes) {
+                adapter.setDataSet(rowTypes);
+            }
+        });
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_favourites, container, false);
+
+        rvFavourites = view.findViewById(R.id.recycler_view_favourites);
+        setUpRecyclerView();
+        return view;
+    }
+
     private void setUpRecyclerView() {
         rvFavourites.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         FavouritesAdapter.OnItemClickListener onItemClickListener = new FavouritesAdapter.OnItemClickListener() {
             @Override
             public void onClickListener(int position) {
-                photoSelectedListener.onPhotoSelected(((Photo) adapter.getDataSet().get(position)).getSearchText(),
+                photoSelectedListener.onPhotoSelected(((Photo) adapter.getDataSet().get(position)).getTitle(),
                         ((Photo) adapter.getDataSet().get(position)).getUrl(),
-                        ((Photo) adapter.getDataSet().get(position)).getPhotoId());
+                        ((Photo) adapter.getDataSet().get(position)).getFlickrPhotoId());
             }
         };
 
@@ -94,30 +106,18 @@ public class FavouritesFragment extends Fragment {
         }).attachToRecyclerView(rvFavourites);
     }
 
-    private void removeItem(int position) {
+    private void removeItem(final int position) {
         if (adapter.getDataSet().get(position) instanceof Header) {
             adapter.notifyDataSetChanged();
             return;
         }
-        PhotoItem photoItem = new PhotoItem(((Photo) adapter.getDataSet().get(position)).getSearchText(),
-                ((Photo) adapter.getDataSet().get(position)).getUrl(), ((MainActivity) getActivity()).getUserId(), null);
-        dbHelper.removeFavourite(photoItem);
-        adapter.removeDateItem(position);
-        adapter.notifyItemRemoved(position);
-
-        if (dbHelper.getFavouritePhotoCount(photoItem) == 0) {
-            if (--position != RecyclerView.NO_POSITION) {
-                adapter.removeDateItem(position);
-                adapter.notifyItemRemoved(position);
+        ((MainActivity) getActivity()).getProcessResponseThread().getHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                favouritePhotoVIewModel.deleteFavouritePhoto(((Photo) adapter.getDataSet().get(position)).getUrl(),
+                        ((MainActivity) getActivity()).getUserId());
             }
-        }
+        });
     }
 
-    private void updateFavouriteItemsList() {
-        adapter.updateDataSet(dbHelper, ((MainActivity) getActivity()).getUserId());
-        if (adapter.getDataSet().size() == 0) {
-            Toast.makeText(getActivity(), getString(R.string.toast_no_favourites), Toast.LENGTH_SHORT).show();
-        }
-        adapter.notifyDataSetChanged();
-    }
 }

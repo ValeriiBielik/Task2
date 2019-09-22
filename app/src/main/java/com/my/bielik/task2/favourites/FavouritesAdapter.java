@@ -2,10 +2,9 @@ package com.my.bielik.task2.favourites;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.my.bielik.task2.database.DBPhotoHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,12 +20,9 @@ public class FavouritesAdapter extends RecyclerView.Adapter {
         this.onRemoveButtonClickListener = removeButtonClickListener;
     }
 
-    void updateDataSet(DBPhotoHelper dbHelper, int userId) {
-        dbHelper.getFavouritePhotos(dataSet, userId);
-    }
-
-    void removeDateItem(int position) {
-        dataSet.remove(position);
+    void setDataSet(List<RowType> dataSet) {
+        this.dataSet = dataSet;
+        notifyDataSetChanged();
     }
 
     List<RowType> getDataSet() {

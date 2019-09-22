@@ -73,7 +73,6 @@ public class ImagesManager {
     }
 
 
-
     public void deleteImage(String fileName) {
         File file = new File(fileName);
         if (!file.delete()) {

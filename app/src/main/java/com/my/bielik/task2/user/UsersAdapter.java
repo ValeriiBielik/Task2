@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.my.bielik.task2.R;
-import com.my.bielik.task2.database.DBPhotoHelper;
+import com.my.bielik.task2.database.entity.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +26,9 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UsersViewHol
         this.listener = listener;
     }
 
-    void updateDataSet(DBPhotoHelper dbHelper) {
-        dbHelper.getUsers(dataSet);
+    void setDataSet(List<User> users) {
+        this.dataSet = users;
+        notifyDataSetChanged();
     }
 
     List<User> getDataSet() {
@@ -55,7 +56,7 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UsersViewHol
 
     @Override
     public void onBindViewHolder(@NonNull UsersViewHolder usersViewHolder, int i) {
-        usersViewHolder.tvUsername.setText(dataSet.get(i).getName());
+        usersViewHolder.tvUsername.setText(dataSet.get(i).getUserName());
     }
 
     @Override

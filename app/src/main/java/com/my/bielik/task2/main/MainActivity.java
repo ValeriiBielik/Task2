@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
@@ -59,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
     private Toolbar toolbar;
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
+    private BroadcastReceiver batteryLevelReceiver;
 
     private int userId;
     private int batteryLevel;
@@ -249,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
     protected void onDestroy() {
         super.onDestroy();
         processResponseThread.quit();
+        unregisterReceiver(batteryLevelReceiver);
     }
 
     @Override
@@ -264,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
     private void setBatteryLevelReceiver() {
         IntentFilter batteryLevelFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 
-        BroadcastReceiver batteryLevelReceiver = new BroadcastReceiver(){
+        batteryLevelReceiver = new BroadcastReceiver(){
             @Override
             public void onReceive(Context context, Intent intent){
                 int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
@@ -277,5 +278,6 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
             }
         };
         registerReceiver(batteryLevelReceiver, batteryLevelFilter);
+
     }
 }

@@ -18,22 +18,26 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.my.bielik.task2.FavouritePhotoVIewModel;
 import com.my.bielik.task2.R;
+import com.my.bielik.task2.RecentPhotoViewModel;
 import com.my.bielik.task2.api.Retro;
 import com.my.bielik.task2.api.response.object.ImageResponse;
 import com.my.bielik.task2.api.response.object.ImageSizesResponse;
 import com.my.bielik.task2.api.response.object.PhotoListResponse;
-import com.my.bielik.task2.database.DBPhotoHelper;
-import com.my.bielik.task2.database.object.PhotoItem;
+import com.my.bielik.task2.database.entity.Photo;
 import com.my.bielik.task2.gallery.ImagesManager;
+import com.my.bielik.task2.main.MainActivity;
 
 import java.io.IOException;
 import java.net.URL;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
 import retrofit2.Call;
 
 import static com.my.bielik.task2.app.MyApplication.API_KEY;
@@ -49,11 +53,14 @@ public class PhotoViewFragment extends Fragment {
     private ImageView imageView;
     private BottomNavigationView bottomNavigationView;
 
-    private PhotoItem photoItem;
+    private Photo photo;
+    private int userId;
+
     private Bitmap bitmap;
     private int imageLoadType;
 
-    private DBPhotoHelper photosDBHelper;
+    private FavouritePhotoVIewModel favouritePhotoVIewModel;
+    private RecentPhotoViewModel recentPhotoViewModel;
 
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
 
@@ -88,21 +95,26 @@ public class PhotoViewFragment extends Fragment {
                 bitmap = BitmapFactory.decodeFile(getArguments().getString("path_extra"));
                 imageLoadType = BITMAP_LOAD;
             } else {
-                photoItem = new PhotoItem(getArguments().getString(SEARCH_TEXT_EXTRA),
-                        getArguments().getString(URL_EXTRA),
-                        getArguments().getInt(USER_ID_EXTRA),
-                        getArguments().getString(PHOTO_ID_EXTRA));
+                photo = new Photo(getArguments().getString(URL_EXTRA, ""),
+                        getArguments().getString(SEARCH_TEXT_EXTRA, ""),
+                        getArguments().getString(PHOTO_ID_EXTRA, ""));
+                userId = getArguments().getInt(USER_ID_EXTRA);
                 imageLoadType = PHOTO_ITEM_LOAD;
             }
         }
-
-        photosDBHelper = new DBPhotoHelper(getActivity());
 
         setContent();
         setBottomNavigationView();
         addToRecent();
 
         return view;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        favouritePhotoVIewModel = ViewModelProviders.of(this).get(FavouritePhotoVIewModel.class);
+        recentPhotoViewModel = ViewModelProviders.of(this).get(RecentPhotoViewModel.class);
     }
 
     private void setContent() {
@@ -113,8 +125,8 @@ public class PhotoViewFragment extends Fragment {
                 break;
             }
             case PHOTO_ITEM_LOAD: {
-                Glide.with(this).load(photoItem.getUrl()).into(imageView);
-                tvSearchInfo.setText(photoItem.getSearchText());
+                Glide.with(this).load(photo.getUrl()).into(imageView);
+                tvSearchInfo.setText(photo.getTitle());
                 break;
             }
         }
@@ -126,15 +138,15 @@ public class PhotoViewFragment extends Fragment {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
-                    case R.id.menu_item_add_to_favourites : {
+                    case R.id.menu_item_add_to_favourites: {
                         addToFavourites();
                         return true;
                     }
-                    case R.id.menu_item_delete_from_favourites : {
+                    case R.id.menu_item_delete_from_favourites: {
                         removeFromFavourites();
                         return true;
                     }
-                    case R.id.menu_item_download : {
+                    case R.id.menu_item_download: {
                         downloadImage();
                         return true;
                     }
@@ -146,23 +158,38 @@ public class PhotoViewFragment extends Fragment {
 
     private void addToFavourites() {
         if (imageLoadType == PHOTO_ITEM_LOAD) {
-            String response = photosDBHelper.addFavourite(photoItem)
-                    ? getString(R.string.toast_added_to_favourites) : getString(R.string.toast_in_favourites);
-            Toast.makeText(getActivity(), response, Toast.LENGTH_SHORT).show();
+            ((MainActivity) getActivity()).getProcessResponseThread().getHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    long id = favouritePhotoVIewModel.insertFavouritePhoto(photo, userId);
+                    String response = id == -1 ? getString(R.string.toast_in_favourites) : getString(R.string.toast_added_to_favourites);
+                    Toast.makeText(getActivity(), response, Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
     private void removeFromFavourites() {
         if (imageLoadType == PHOTO_ITEM_LOAD) {
-            String response = photosDBHelper.removeFavourite(photoItem)
-                    ? getString(R.string.toast_deleted_from_favourites) : getString(R.string.toast_not_in_favourites);
-            Toast.makeText(getActivity(), response, Toast.LENGTH_SHORT).show();
+            ((MainActivity) getActivity()).getProcessResponseThread().getHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    int deletedRowsCount = favouritePhotoVIewModel.deleteFavouritePhoto(photo.getUrl(), userId);
+                    String response = deletedRowsCount == 1 ? getString(R.string.toast_deleted_from_favourites) : getString(R.string.toast_not_in_favourites);
+                    Toast.makeText(getActivity(), response, Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
     private void addToRecent() {
         if (imageLoadType == PHOTO_ITEM_LOAD) {
-            photosDBHelper.addRecent(photoItem);
+            ((MainActivity) getActivity()).getProcessResponseThread().getHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    recentPhotoViewModel.insertRecentPhoto(photo, userId);
+                }
+            });
         }
     }
 
@@ -174,7 +201,7 @@ public class PhotoViewFragment extends Fragment {
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
             } else {
-                new DownloadImageAsyncTask(photoItem).execute();
+                new DownloadImageAsyncTask(photo).execute();
                 Toast.makeText(getActivity(), getString(R.string.toast_download_completed), Toast.LENGTH_SHORT).show();
             }
         }
@@ -184,7 +211,7 @@ public class PhotoViewFragment extends Fragment {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                new DownloadImageAsyncTask(photoItem).execute();
+                new DownloadImageAsyncTask(photo).execute();
             } else {
                 Toast.makeText(getActivity(), getString(R.string.toast_required_write_external_storage_permission), Toast.LENGTH_SHORT).show();
             }
@@ -194,16 +221,16 @@ public class PhotoViewFragment extends Fragment {
 
     static class DownloadImageAsyncTask extends AsyncTask<Void, Void, Void> {
 
-        private PhotoItem photoItem;
+        private Photo photo;
 
-        DownloadImageAsyncTask(PhotoItem photoItem) {
-            this.photoItem = photoItem;
+        DownloadImageAsyncTask(Photo photo) {
+            this.photo = photo;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                Call<ImageSizesResponse> call = Retro.getFlickrApi().getPhotoToDownload(API_KEY, photoItem.getPhotoId());
+                Call<ImageSizesResponse> call = Retro.getFlickrApi().getPhotoToDownload(API_KEY, photo.getFlickrPhotoId());
                 ImageSizesResponse imageSizesResponse = call.execute().body();
 
                 if (imageSizesResponse != null || imageSizesResponse.getStat().equals(PhotoListResponse.STAT_OK)) {
@@ -224,7 +251,7 @@ public class PhotoViewFragment extends Fragment {
 
                     ImagesManager imagesManager = ImagesManager.getInstance();
                     imagesManager.createPublicStorage();
-                    imagesManager.createImageFile(photoItem.getSearchText(), image, ImagesManager.CREATE_PUBLIC_FILE);
+                    imagesManager.createImageFile(photo.getTitle(), image, ImagesManager.CREATE_PUBLIC_FILE);
 
                 }
             } catch (IOException e) {
