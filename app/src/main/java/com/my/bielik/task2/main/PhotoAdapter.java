@@ -33,6 +33,10 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         notifyDataSetChanged();
     }
 
+    void updateDataSet(Photo photo) {
+        dataSet.add(photo);
+    }
+
     void removeDataItem(int position) {
         dataSet.remove(position);
     }

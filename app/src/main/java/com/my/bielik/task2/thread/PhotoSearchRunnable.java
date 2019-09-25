@@ -78,6 +78,9 @@ public class PhotoSearchRunnable implements Runnable {
                 text = "";
                 break;
             }
+            default:
+                call = Retro.getFlickrApi().getPhotosWithText(API_KEY, text, "photos", page);
+                break;
         }
     }
 

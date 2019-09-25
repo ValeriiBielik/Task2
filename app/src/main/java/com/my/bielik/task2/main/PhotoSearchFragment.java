@@ -10,6 +10,12 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -20,6 +26,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.jakewharton.rxbinding3.widget.RxTextView;
+import com.jakewharton.rxbinding3.widget.TextViewTextChangeEvent;
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.database.entity.Photo;
 import com.my.bielik.task2.photoview.PhotoViewFragment;
@@ -28,6 +36,7 @@ import com.my.bielik.task2.thread.PhotoSearchRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static android.content.Context.MODE_PRIVATE;
 import static com.my.bielik.task2.app.MyApplication.APP_PREFERENCES;
@@ -91,9 +100,33 @@ public class PhotoSearchFragment extends Fragment {
             getPhotosWithGeo(getArguments().getDouble(LATITUDE_EXTRA), getArguments().getDouble(LONGITUDE_EXTRA));
         }
 
-        if(view.findViewById(R.id.fl_photo_view) != null) {
+        if (view.findViewById(R.id.fl_photo_view) != null) {
             twoPane = true;
         }
+
+        RxTextView.textChangeEvents(etRequest)
+                .debounce(400, TimeUnit.MILLISECONDS)
+                .map(new Function<TextViewTextChangeEvent, String>() {
+                    @Override
+                    public String apply(TextViewTextChangeEvent t) {
+                        return t.getText().toString();
+                    }
+                })
+                .filter(new Predicate<String>() {
+                    @Override
+                    public boolean test(String s) {
+                        return s.length() > 3;
+                    }
+                })
+                .subscribeOn(Schedulers.io()) // Or Schedulers.newThread()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) {
+                        runnable.setText(s);
+                        getPhotos(SEARCH_PHOTOS_WITH_TEXT);
+                    }
+                });
 
         return view;
     }
@@ -119,9 +152,9 @@ public class PhotoSearchFragment extends Fragment {
 
                     getFragmentManager().beginTransaction().replace(R.id.fl_photo_view,
                             PhotoViewFragment.newInstance(adapter.getDataSet().get(position).getTitle(),
-                            adapter.getDataSet().get(position).getUrl(),
+                                    adapter.getDataSet().get(position).getUrl(),
                                     ((MainActivity) getActivity()).getUserId(),
-                            adapter.getDataSet().get(position).getFlickrPhotoId())).commit();
+                                    adapter.getDataSet().get(position).getFlickrPhotoId())).commit();
                 } else {
                     photoSelectedListener.onPhotoSelected(adapter.getDataSet().get(position).getTitle(),
                             adapter.getDataSet().get(position).getUrl(),
@@ -189,8 +222,6 @@ public class PhotoSearchFragment extends Fragment {
                         if (!isUpdating) {
                             adapter.clearDataSet();
                         }
-
-                        List<Photo> photoList = new ArrayList<>();
                         Photo photo;
                         for (int i = 0; i < photos.size(); i++) {
                             photo = photos.get(i);
@@ -198,9 +229,8 @@ public class PhotoSearchFragment extends Fragment {
                             if (searchType == SEARCH_PHOTOS_WITH_GEO_COORDINATES) {
                                 photo.setTitle(geoPhotoTitle);
                             }
-                            photoList.add(photo);
+                            adapter.updateDataSet(photo);
                         }
-                        adapter.setDataSet(photoList);
 
                         adapter.notifyDataSetChanged();
                         finishLoading();
@@ -226,12 +256,12 @@ public class PhotoSearchFragment extends Fragment {
 
         ((MainActivity) getActivity()).getProcessResponseThread().getHandler()
                 .post(new AddressToTitleConvertRunnable((MainActivity) getActivity(), latitude, longitude,
-                new AddressToTitleConvertRunnable.OnConvertingFinishedCallback() {
-                    @Override
-                    public void onConvertingFinished(String text) {
-                        geoPhotoTitle = text;
-                    }
-                }));
+                        new AddressToTitleConvertRunnable.OnConvertingFinishedCallback() {
+                            @Override
+                            public void onConvertingFinished(String text) {
+                                geoPhotoTitle = text;
+                            }
+                        }));
         getPhotos(SEARCH_PHOTOS_WITH_GEO_COORDINATES);
     }
 
