@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory>
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="allow_background_updates"
+            android:title="Allow background updates" />
+
+        <EditTextPreference
+            android:key="request_text"
+            android:title="Request text" />
+
+        <ListPreference
+            android:entries="@array/repeat_time_array"
+            android:entryValues="@array/repeat_time_values_array"
+            android:key="repeat_time"
+            android:defaultValue="15"
+            android:title="Repeat time" />
+    </PreferenceCategory>
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="app_theme"
+        android:title="Dark theme" />
+</PreferenceScreen>

@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.my.bielik.task2.FavouritePhotoVIewModel;
+import com.my.bielik.task2.FavouritePhotoViewModel;
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.RecentPhotoViewModel;
 import com.my.bielik.task2.api.Retro;
@@ -59,7 +59,7 @@ public class PhotoViewFragment extends Fragment {
     private Bitmap bitmap;
     private int imageLoadType;
 
-    private FavouritePhotoVIewModel favouritePhotoVIewModel;
+    private FavouritePhotoViewModel favouritePhotoVIewModel;
     private RecentPhotoViewModel recentPhotoViewModel;
 
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
@@ -113,7 +113,7 @@ public class PhotoViewFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        favouritePhotoVIewModel = ViewModelProviders.of(this).get(FavouritePhotoVIewModel.class);
+        favouritePhotoVIewModel = ViewModelProviders.of(this).get(FavouritePhotoViewModel.class);
         recentPhotoViewModel = ViewModelProviders.of(this).get(RecentPhotoViewModel.class);
     }
 

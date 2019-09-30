@@ -19,12 +19,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.Observer;
 
-public class FavouritePhotoVIewModel extends AndroidViewModel {
+public class FavouritePhotoViewModel extends AndroidViewModel {
 
     private FavouritePhotoDao favouritePhotoDao;
     private PhotoDao photoDao;
 
-    public FavouritePhotoVIewModel(@NonNull Application application) {
+    public FavouritePhotoViewModel(@NonNull Application application) {
         super(application);
         favouritePhotoDao = Database.getInstance(application).favouritePhotoDao();
         photoDao = Database.getInstance(application).photoDao();

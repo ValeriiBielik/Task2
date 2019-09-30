@@ -14,10 +14,10 @@ public class FavouritePhoto {
     private long photoId;
 
     @NonNull
-    private int userId;
+    private int userID;
 
-    public FavouritePhoto(long photoId, int userId) {
-        this.userId = userId;
+    public FavouritePhoto(long photoId, int userID) {
+        this.userID = userID;
         this.photoId = photoId;
     }
 
@@ -29,8 +29,8 @@ public class FavouritePhoto {
         this.id = id;
     }
 
-    public int getUserId() {
-        return userId;
+    public int getUserID() {
+        return userID;
     }
 
     public long getPhotoId() {

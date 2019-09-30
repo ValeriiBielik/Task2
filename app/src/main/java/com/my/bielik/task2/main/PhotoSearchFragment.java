@@ -6,12 +6,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
@@ -23,9 +25,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.material.textfield.TextInputEditText;
 import com.jakewharton.rxbinding3.widget.RxTextView;
 import com.jakewharton.rxbinding3.widget.TextViewTextChangeEvent;
 import com.my.bielik.task2.R;
@@ -34,7 +36,6 @@ import com.my.bielik.task2.photoview.PhotoViewFragment;
 import com.my.bielik.task2.thread.AddressToTitleConvertRunnable;
 import com.my.bielik.task2.thread.PhotoSearchRunnable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -48,8 +49,7 @@ import static com.my.bielik.task2.user.LoginActivity.LONGITUDE_EXTRA;
 
 public class PhotoSearchFragment extends Fragment {
 
-
-    private EditText etRequest;
+    private TextInputEditText inputRequest;
     private RecyclerView rvPhotos;
     private Button btnSearch;
 
@@ -66,6 +66,8 @@ public class PhotoSearchFragment extends Fragment {
 
     private boolean twoPane;
 
+    private Disposable requestTextDisposable;
+
     public PhotoSearchFragment() {
     }
 
@@ -77,20 +79,20 @@ public class PhotoSearchFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_photo_search, container, false);
-        etRequest = view.findViewById(R.id.et_request);
+        inputRequest = view.findViewById(R.id.et_request);
         rvPhotos = view.findViewById(R.id.rv_photos);
         btnSearch = view.findViewById(R.id.button_search);
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                runnable.setText(etRequest.getText().toString().trim());
+                runnable.setText(inputRequest.getText().toString().trim());
                 getPhotos(SEARCH_PHOTOS_WITH_TEXT);
             }
         });
 
         preferences = getActivity().getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE);
         if (preferences.contains(LAST_SEARCH_VALUE)) {
-            etRequest.setText(preferences.getString(LAST_SEARCH_VALUE, ""));
+            inputRequest.setText(preferences.getString(LAST_SEARCH_VALUE, ""));
         }
 
         setRecyclerView();
@@ -98,35 +100,13 @@ public class PhotoSearchFragment extends Fragment {
 
         if (getArguments() != null) {
             getPhotosWithGeo(getArguments().getDouble(LATITUDE_EXTRA), getArguments().getDouble(LONGITUDE_EXTRA));
+        } else {
+            setRequestTextObservable();
         }
 
         if (view.findViewById(R.id.fl_photo_view) != null) {
             twoPane = true;
         }
-
-        RxTextView.textChangeEvents(etRequest)
-                .debounce(400, TimeUnit.MILLISECONDS)
-                .map(new Function<TextViewTextChangeEvent, String>() {
-                    @Override
-                    public String apply(TextViewTextChangeEvent t) {
-                        return t.getText().toString();
-                    }
-                })
-                .filter(new Predicate<String>() {
-                    @Override
-                    public boolean test(String s) {
-                        return s.length() > 3;
-                    }
-                })
-                .subscribeOn(Schedulers.io()) // Or Schedulers.newThread()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<String>() {
-                    @Override
-                    public void accept(String s) {
-                        runnable.setText(s);
-                        getPhotos(SEARCH_PHOTOS_WITH_TEXT);
-                    }
-                });
 
         return view;
     }
@@ -149,7 +129,6 @@ public class PhotoSearchFragment extends Fragment {
             @Override
             public void onItemClick(int position) {
                 if (twoPane) {
-
                     getFragmentManager().beginTransaction().replace(R.id.fl_photo_view,
                             PhotoViewFragment.newInstance(adapter.getDataSet().get(position).getTitle(),
                                     adapter.getDataSet().get(position).getUrl(),
@@ -193,6 +172,33 @@ public class PhotoSearchFragment extends Fragment {
                 }
             }
         });
+    }
+
+    private void setRequestTextObservable() {
+        requestTextDisposable = RxTextView.textChangeEvents(inputRequest)
+                .debounce(400, TimeUnit.MILLISECONDS)
+                .map(new Function<TextViewTextChangeEvent, String>() {
+                    @Override
+                    public String apply(TextViewTextChangeEvent t) {
+                        return t.getText().toString();
+                    }
+                })
+                .filter(new Predicate<String>() {
+                    @Override
+                    public boolean test(String s) {
+                        return s.length() > 3;
+                    }
+                })
+                .subscribeOn(Schedulers.io()) // Or Schedulers.newThread()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) {
+                        runnable.setText(s);
+                        getPhotos(SEARCH_PHOTOS_WITH_TEXT);
+                    }
+                });
+
     }
 
     private void removeItem(int position) {
@@ -269,7 +275,8 @@ public class PhotoSearchFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(LAST_SEARCH_VALUE, etRequest.getText().toString());
+        editor.putString(LAST_SEARCH_VALUE, inputRequest.getText().toString());
         editor.apply();
+
     }
 }

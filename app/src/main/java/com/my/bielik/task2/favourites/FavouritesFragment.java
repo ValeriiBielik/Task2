@@ -6,7 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.my.bielik.task2.FavouritePhotoVIewModel;
+import com.my.bielik.task2.FavouritePhotoViewModel;
 import com.my.bielik.task2.R;
 import com.my.bielik.task2.database.entity.Photo;
 import com.my.bielik.task2.main.MainActivity;
@@ -28,7 +28,7 @@ public class FavouritesFragment extends Fragment {
     private RecyclerView rvFavourites;
 
     private FavouritesAdapter adapter;
-    private FavouritePhotoVIewModel favouritePhotoVIewModel;
+    private FavouritePhotoViewModel favouritePhotoVIewModel;
 
     private OnPhotoSelectedListener photoSelectedListener;
 
@@ -52,7 +52,7 @@ public class FavouritesFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        favouritePhotoVIewModel = ViewModelProviders.of(this).get(FavouritePhotoVIewModel.class);
+        favouritePhotoVIewModel = ViewModelProviders.of(this).get(FavouritePhotoViewModel.class);
         favouritePhotoVIewModel.getFavouritePhotos(((MainActivity) getActivity()).getUserId()).observe(this, new Observer<List<RowType>>() {
             @Override
             public void onChanged(List<RowType> rowTypes) {

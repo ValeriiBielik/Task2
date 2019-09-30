@@ -20,6 +20,7 @@ import com.my.bielik.task2.R;
 import com.my.bielik.task2.favourites.FavouritesFragment;
 import com.my.bielik.task2.gallery.GalleryFragment;
 import com.my.bielik.task2.gallery.ImagesManager;
+import com.my.bielik.task2.loaded.LoadedPhotoFragment;
 import com.my.bielik.task2.map.MapFragment;
 import com.my.bielik.task2.photoview.PhotoViewFragment;
 import com.my.bielik.task2.recent.RecentFragment;
@@ -38,7 +39,12 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
+import static com.my.bielik.task2.PhotoLoadWorker.KEY_NOTIFICATION;
+import static com.my.bielik.task2.PhotoLoadWorker.PHOTO_LOAD_WORKER_TAG;
 import static com.my.bielik.task2.user.LoginActivity.LATITUDE_EXTRA;
 import static com.my.bielik.task2.user.LoginActivity.LONGITUDE_EXTRA;
 import static com.my.bielik.task2.user.LoginActivity.PHOTO_ID_EXTRA;
@@ -47,7 +53,6 @@ import static com.my.bielik.task2.user.LoginActivity.URL_EXTRA;
 import static com.my.bielik.task2.user.LoginActivity.USER_ID_EXTRA;
 
 public class MainActivity extends AppCompatActivity implements MapFragment.OnPlaceSelectedCallback, OnPhotoSelectedListener {
-
 
     public static final String LAST_SEARCH_VALUE = "last_search_value";
     static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -72,8 +77,17 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
         drawer = findViewById(R.id.drawer_layout);
         nvDrawer = findViewById(R.id.nvView);
 
+        if (savedInstanceState != null) {
+            batteryLevel = savedInstanceState.getInt("battery_level");
+        }
+
         if (getIntent() != null) {
-            userId = getIntent().getIntExtra(USER_ID_EXTRA, 0);
+            if (getIntent().getStringExtra(KEY_NOTIFICATION) != null && getIntent().getStringExtra(KEY_NOTIFICATION).equals(PHOTO_LOAD_WORKER_TAG)) {
+                getSupportFragmentManager().beginTransaction().replace(R.id.flContent, LoadedPhotoFragment.newInstance()).commit();
+            } else {
+                getSupportFragmentManager().beginTransaction().replace(R.id.flContent, PhotoSearchFragment.newInstance()).commit();
+            }
+            userId = getIntent().getIntExtra(USER_ID_EXTRA, 1);
         }
 
         setSupportActionBar(toolbar);
@@ -88,17 +102,11 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
 
         processResponseThread.start();
 
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().add(R.id.flContent, PhotoSearchFragment.newInstance()).commit();
-        } else {
-            batteryLevel = savedInstanceState.getInt("battery_level");
-        }
-
         setBatteryLevelReceiver();
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
-        return new ActionBarDrawerToggle(this, drawer, toolbar, R.string.drawer_open,  R.string.drawer_close);
+        return new ActionBarDrawerToggle(this, drawer, toolbar, R.string.drawer_open, R.string.drawer_close);
     }
 
     @Override
@@ -149,13 +157,12 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.take_photo:
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-                }
-                return true;
+        if (item.getItemId() == R.id.take_photo) {
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+            return true;
         }
 
         if (drawerToggle.onOptionsItemSelected(item)) {
@@ -178,10 +185,6 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
     private void selectDrawerItem(MenuItem item) {
         Fragment fragment;
         switch (item.getItemId()) {
-            case R.id.nav_photo_search:
-                fragment = PhotoSearchFragment.newInstance();
-                toolbar.setTitle(R.string.menu_title_search_photos);
-                break;
             case R.id.nav_gallery:
                 fragment = GalleryFragment.newInstance();
                 toolbar.setTitle(R.string.menu_title_gallery);
@@ -198,6 +201,11 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
                 fragment = MapFragment.newInstance();
                 toolbar.setTitle(R.string.menu_title_map);
                 break;
+            case R.id.nav_loaded_photos:
+                fragment = LoadedPhotoFragment.newInstance();
+                toolbar.setTitle(getString(R.string.menu_title_loaded_photos));
+                break;
+            case R.id.nav_photo_search:
             default:
                 fragment = PhotoSearchFragment.newInstance();
                 toolbar.setTitle(R.string.menu_title_search_photos);
@@ -210,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             if (data == null) {
                 Log.e("MainActivity", "data is null");
@@ -265,9 +274,9 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
     private void setBatteryLevelReceiver() {
         IntentFilter batteryLevelFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 
-        batteryLevelReceiver = new BroadcastReceiver(){
+        batteryLevelReceiver = new BroadcastReceiver() {
             @Override
-            public void onReceive(Context context, Intent intent){
+            public void onReceive(Context context, Intent intent) {
                 int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 
                 if (batteryLevel != level) {
@@ -278,6 +287,5 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnPla
             }
         };
         registerReceiver(batteryLevelReceiver, batteryLevelFilter);
-
     }
 }

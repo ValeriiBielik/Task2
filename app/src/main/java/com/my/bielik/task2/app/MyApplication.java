@@ -1,7 +1,12 @@
 package com.my.bielik.task2.app;
 
 import android.app.Application;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.SharedPreferences;
+import android.os.Build;
+import android.preference.PreferenceManager;
 
 import com.facebook.stetho.Stetho;
 
@@ -14,28 +19,46 @@ public class MyApplication extends Application {
     public static final String APP_PREFERENCES = "app_prefs";
     public static final String APP_THEME = "app_theme";
 
-    private static final int LIGHT_THEME = 0;
-    private static final int DARK_THEME = 1;
-
+    public static final String PHOTO_LOAD_CHANNEL_ID = "photo_load_chanel";
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        initializeStetho();
+        setTheme();
+        createNotificationChannel();
+
+    }
+
+    private void initializeStetho() {
         Stetho.InitializerBuilder initializerBuilder = Stetho.newInitializerBuilder(this);
         initializerBuilder.enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this));
         initializerBuilder.enableDumpapp(Stetho.defaultDumperPluginsProvider(this));
         Stetho.Initializer initializer = initializerBuilder.build();
         Stetho.initialize(initializer);
+    }
 
-        SharedPreferences preferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE);
-        if (preferences.contains(APP_THEME)) {
-            if (preferences.getInt(APP_THEME, 0) == DARK_THEME) {
-                AppCompatDelegate.setDefaultNightMode
-                        (AppCompatDelegate.MODE_NIGHT_YES);
-            } else {
-                AppCompatDelegate.setDefaultNightMode
-                        (AppCompatDelegate.MODE_NIGHT_NO);
-            }
+    private void setTheme() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        if (!sharedPreferences.getBoolean(APP_THEME, false)) {
+            AppCompatDelegate.setDefaultNightMode
+                    (AppCompatDelegate.MODE_NIGHT_NO);
+        } else {
+            AppCompatDelegate.setDefaultNightMode
+                    (AppCompatDelegate.MODE_NIGHT_YES);
+        }
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel photoLoadChannel = new NotificationChannel(
+                    PHOTO_LOAD_CHANNEL_ID,
+                    "Photo load channel",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+
+            getSystemService(NotificationManager.class).createNotificationChannel(photoLoadChannel);
         }
     }
 
